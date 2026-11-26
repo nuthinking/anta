@@ -4,14 +4,22 @@ import { Text } from '@antadesign/anta'
 import { Code } from 'astro-expressive-code/components'
 ---
 
-<DocsLayout title="Overview" author="Vlad Korobov" hideSidebar>
-  <h1>A customizable component system for web applications</h1>
+<DocsLayout title="Overview" hideSidebar>
+  <h1>Components for technical products</h1>
 
   <Text>
-    <p>Built and used at <a href="https://antithesis.com">Antithesis</a>, with opinionated defaults and flexible customization.</p>
+    <p>Anta is a component system for consoles, developer tools, and data-heavy applications. It is built and used at <a href="https://antithesis.com">Antithesis</a>.</p>
+    <p>Anta defines behavior and accessibility. The look stays with your designer.</p>
     <p>Themed with plain CSS, classes, or inline styles. No CSS-in-JS runtime.</p>
     <p>Architected with Web Components and typed React/Preact wrappers.</p>
   </Text>
+  <h2>Principles</h2>
+  <ul>
+    <li><a href="/principles/#build-for-technical-products">Build for technical products.</a> Data-heavy screens come first.</li>
+    <li><a href="/principles/#serve-great-design">Serve great design.</a> The look of a product belongs to its designer.</li>
+    <li><a href="/principles/#leave-the-dom-to-the-application">Leave the DOM to the application.</a> Components never mutate their own attributes.</li>
+    <li><a href="/principles/#test-with-generated-states-and-actions">Test with generated states and actions.</a> Properties check behavior across generated sequences.</li>
+  </ul>
   <h2>Use with an AI assistant</h2>
   <Code
     lang="text"

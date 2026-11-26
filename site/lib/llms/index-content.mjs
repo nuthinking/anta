@@ -6,9 +6,13 @@ export const llmsGuidance = "Anta is designed for a clean DOM. Prefer the props 
 
 export const overview = `# Overview
 
-Anta is an opinionated design system. It combines global CSS tokens,
-framework-agnostic declarative web components, and JSX wrappers for dynamic
-state and conditional composition.
+Anta is a component system for technical products: consoles, developer tools,
+and data-heavy applications. It combines global CSS tokens, framework-agnostic
+declarative web components, and JSX wrappers for dynamic state and conditional
+composition.
+
+Anta defines behavior, keyboard interaction, and accessibility semantics. Color,
+typography, shape, and density stay open to your design.
 
 Components use an attribute-driven DOM instead of utility-class stacks and
 wrapper elements. Web components never mutate their own attributes, so they
@@ -28,9 +32,10 @@ export function createLlmsIndex(catalog) {
 
   return `# Anta
 
-> Anta is an opinionated design system for building product interfaces. It provides
-> design tokens, declarative web components, and typed JSX wrappers. Use the same
-> components in React, Preact via compat, plain HTML, and custom JSX runtimes via \`configure()\`.
+> Anta is a component system for technical products: consoles, developer tools, and
+> data-heavy applications. It provides design tokens, declarative web components, and
+> typed JSX wrappers. Use the same components in React, Preact via compat, plain HTML,
+> and custom JSX runtimes via \`configure()\`.
 > Published as \`@antadesign/anta\` on npm.
 
 ${llmsGuidance}

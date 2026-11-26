@@ -1,6 +1,7 @@
 // Standalone pages retain their own layouts. MDX titles come from frontmatter.
 export const STANDALONE_PAGES = [
   { id: 'overview', path: '/', source: 'src/pages/index.astro', title: 'Overview', nav: { group: 'overview', order: 10, icon: 'info' }, exportOrder: 10, exportPath: 'overview.md', exportContent: 'overview' },
+  { id: 'principles', path: '/principles/', source: 'src/pages/principles.mdx', nav: { group: 'overview', order: 15, icon: 'book-open' }, exportOrder: 15 },
   { id: 'comparison', path: '/comparison/', source: 'src/pages/comparison.mdx', nav: { group: 'overview', order: 20, icon: 'table-2' }, exportOrder: 20 },
   { id: 'install', path: '/install/', source: 'src/pages/install.mdx', nav: { group: 'setup', order: 10, icon: 'download' }, exportOrder: 30, exportPath: 'install-config.md' },
   { id: 'normalization', path: '/normalization/', source: 'src/pages/normalization.mdx', nav: { group: 'setup', order: 20, icon: 'book-a' }, exportOrder: 40 },

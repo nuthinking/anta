@@ -1,5 +1,11 @@
 # Comparison
 
+Anta is a component system for technical products: consoles, developer tools,
+and data-heavy applications. Compare its frameworks, styling, license, browser
+support, download size, and component coverage with other component systems.
+[Principles](./principles.md) describes what Anta includes and what it leaves to
+your application.
+
 <a id="frameworks-styling-license-browser-support"></a>
 
 ## Frameworks, styling, licenses, and browser support
@@ -39,7 +45,7 @@ download costs.
 
 ### Anta
 
-[Anta](https://anta.design). Framework-agnostic web components with optional React/Preact wrappers and no style runtime.
+[Anta](https://anta.design). Components for technical products, delivered as web components with React and Preact wrappers.
 
 | Field | Value |
 | --- | --- |
@@ -52,9 +58,9 @@ download costs.
 
 #### Strengths
 
+- Virtual scroll, Plot, the faceted filter, and Capture cover data-heavy screens.
 - Runs in React, Preact, and plain HTML; JSX wrappers are optional.
 - Plain CSS and cascade layers support overrides without a style runtime.
-- Shared color, font, and focus tokens support light and dark themes.
 
 #### Trade-offs
 
@@ -64,6 +70,7 @@ download costs.
 
 #### Sources
 
+- [Principles](./principles.md)
 - [Installation and browser support](./install-config.md#browser-support)
 - [Theming](./theming.md)
 

@@ -68,7 +68,7 @@ const npmVersion = antaPackage.version
 const ogImage = new URL('/og-image.png', Astro.site).href
 const pageUrl = new URL(Astro.url.pathname, Astro.site).href
 const pageTitle = title ? `${title} — Anta` : 'Anta'
-const description = "Opinionated design system: global CSS tokens, framework-agnostic web components, and JSX wrappers for React and Preact."
+const description = "Component system for technical products: framework-agnostic web components, JSX wrappers for React and Preact, and plain CSS theming."
 // Keep local development free of analytics traffic and token configuration.
 const shouldLoadPostHog = import.meta.env.PROD
 

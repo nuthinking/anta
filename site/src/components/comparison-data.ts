@@ -77,7 +77,7 @@ export const SYSTEMS: System[] = [
     anta: true,
     version: '@antadesign/anta 0.3.26',
     docs: 'https://anta.design',
-    tagline: 'Framework-agnostic web components with optional React/Preact wrappers and no style runtime.',
+    tagline: 'Components for technical products, delivered as web components with React and Preact wrappers.',
     kind: 'Styled web components + JSX wrappers',
     frameworks: 'Web components',
     frameworksNote: 'React and Preact wrappers',
@@ -89,13 +89,14 @@ export const SYSTEMS: System[] = [
     browsers: "Chrome / Edge 135 (2025), Safari 17.4 (2024), and Firefox 136 (2025), or later. Requires custom elements, ElementInternals, ARIA element references, custom states, Popover, and modern CSS.",
     browserSupport: '2025',
     sources: [
+      { label: 'Principles', href: '/principles/' },
       { label: 'Installation and browser support', href: '/install/#browser-support' },
       { label: 'Theming', href: '/theming/' },
     ],
     pros: [
+      'Virtual scroll, Plot, the faceted filter, and Capture cover data-heavy screens.',
       'Runs in React, Preact, and plain HTML; JSX wrappers are optional.',
       'Plain CSS and cascade layers support overrides without a style runtime.',
-      'Shared color, font, and focus tokens support light and dark themes.',
     ],
     cons: [
       'No data grid or chart components in the published package.',

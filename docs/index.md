@@ -5,6 +5,7 @@ Anta is designed for a clean DOM. Prefer the props and attributes exposed by eac
 ## Documentation
 
 - [Overview](./overview.md)
+- [Principles](./principles.md)
 - [Comparison](./comparison.md)
 - [Install and configure](./install-config.md)
 - [Normalization](./normalization.md)
