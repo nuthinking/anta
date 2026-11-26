@@ -252,7 +252,7 @@ The lab varies a tone seed and formula inputs in light and dark mode. These inpu
 
 ### Background and Borders
 
-The container background and border role scales, derived from the source hue. Backgrounds sit near the page lightness with a faint tint that grows per step; borders step down in lightness from a saturated edge (border-1) to the faint bg-5, chroma easing off as they lighten. Neutral zeroes chroma to stay grey.
+The container background and border role scales. Each step keeps a pinned lightness: backgrounds sit near the page with a faint tint that grows per step, and borders step from a saturated edge (border-1) to the faint border-5. Chroma scales with the seed. At the reference chroma a step gets the chroma listed here, a more muted seed gets less, and a more vivid one gets at most the headroom multiple. Neutral pins its chroma by setting the reference near zero.
 
 #### Background
 
@@ -283,18 +283,18 @@ The container background and border role scales, derived from the source hue. Ba
 | border-5 L | 0.935 | 0.21 | 0.935 | 0.21 | 0–1 | 0.005 |  |
 | border-5 C | 0.028 | 0.045 | 0.008 | 0.008 | 0–0.4 | 0.005 |  |
 
-### Text
+#### Seed chroma
 
-The text color role scale, derived from the source hue. text-1 is the strong primary; text-2 the base (secondary); text-3/4 step text-2 down by alpha — Title and Text read text-1..4 as their priorities. text-5 is the faintest step (text-2 at a lower alpha), used for disabled / hint text across components, not a Title/Text priority.
-
-#### Primary
-
-text-1.
+Shared by every background and border step.
 
 | Input | Toned light | Toned dark | Neutral light | Neutral dark | Range | Step | Meaning |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| text-1 L | 0.38 | 0.85 | 0.1 | 0.94 | 0–1 | 0.005 |  |
-| text-1 C | 0.11 | 0.1 | 0.01 | 0.008 | 0–0.4 | 0.005 |  |
+| reference C | 0.17 | 0.17 | 0.001 | 0.001 | 0.001–0.4 | 0.001 | Seed chroma at which each step gets the chroma listed for it. Neutral sets it near zero, so every step takes its listed chroma. |
+| C headroom | 1.25 | 1.25 | 1 | 1 | 1–2 | 0.05 | How far above its listed chroma a step may go for a seed more vivid than the reference. |
+
+### Text
+
+The text color role scale. text-2 is the base: it takes the seed’s lightness inside a window, which keeps it readable on a surface, and the seed’s chroma, scaled and capped. text-1 is the strong primary, a lightness step away from text-2 with less chroma. text-3/4 step text-2 down by alpha; Title and Text read text-1..4 as their priorities. text-5 is the faintest step (the disabled / hint tone). Neutral closes the window to one lightness.
 
 #### Secondary
 
@@ -302,8 +302,19 @@ text-2 base.
 
 | Input | Toned light | Toned dark | Neutral light | Neutral dark | Range | Step | Meaning |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| text-2 L | 0.43 | 0.77 | 0.3 | 0.8 | 0–1 | 0.005 |  |
-| text-2 C | 0.15 | 0.11 | 0.015 | 0.015 | 0–0.4 | 0.005 |  |
+| text-2 L min | 0.3 | 0.86 | 0.3 | 0.8 | 0–1 | 0.005 | Lower end of the lightness window. In dark mode this end sets contrast with the surface. |
+| text-2 L max | 0.46 | 0.92 | 0.3 | 0.8 | 0–1 | 0.005 | Upper end of the lightness window. In light mode this end sets contrast with the surface. |
+| text-2 C scale | 1 | 0.75 | 1 | 1 | 0–2 | 0.05 | Multiplies the seed’s chroma. |
+| text-2 C cap | 0.17 | 0.13 | 0.015 | 0.015 | 0–0.4 | 0.005 |  |
+
+#### Primary
+
+text-1, derived from text-2.
+
+| Input | Toned light | Toned dark | Neutral light | Neutral dark | Range | Step | Meaning |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| text-1 L shift | -0.05 | 0.04 | -0.2 | 0.14 | -0.5–0.5 | 0.005 | Added to text-2’s lightness. |
+| text-1 C scale | 0.75 | 0.75 | 0.6667 | 0.5333 | 0–2 | 0.05 | Multiplies text-2’s chroma. |
 
 #### Tertiary
 
@@ -331,27 +342,32 @@ text-2 base at this alpha (→ text-5) — the disabled / hint step, not a Title
 
 ### Buttons
 
-Primary is the source fill at three lightnesses. Secondary, tertiary, and quaternary share one foreground; secondary and tertiary share an alpha-tinted fill (tertiary a step softer, transparent at rest), quaternary has none. Secondary’s label subtracts an l-shift to read a step stronger than its tint.
+The primary fill takes the seed’s lightness inside a window and its chroma, scaled and capped. Hover and active shift that lightness, and the label turns from white to dark above the flip point. Secondary, tertiary, and quaternary share one foreground, which takes the seed’s lightness inside a narrower window. Secondary and tertiary share an alpha-tinted fill at a pinned lightness (tertiary a step softer, transparent at rest); quaternary has none. Neutral closes both windows to one lightness.
 
 #### Primary
 
 | Input | Toned light | Toned dark | Neutral light | Neutral dark | Range | Step | Meaning |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| L rest | 0.51 | 0.4 | 0.5 | 0.4 | 0–1 | 0.005 |  |
-| L hover | 0.46 | 0.44 | 0.45 | 0.44 | 0–1 | 0.005 |  |
-| L active | 0.41 | 0.48 | 0.4 | 0.48 | 0–1 | 0.005 |  |
-| fill C | 0.17 | 0.16 | 0.02 | 0.015 | 0–0.4 | 0.005 | One chroma for the primary fill across rest/hover/active. Neutral pins it near-grey; toned versions set the saturation here instead of inheriting the seed’s own chroma. |
+| fill L min | 0.42 | 0.38 | 0.5 | 0.4 | 0–1 | 0.005 | A darker seed is raised to this lightness. |
+| fill L max | 0.85 | 0.8 | 0.5 | 0.4 | 0–1 | 0.005 | A lighter seed is lowered to this lightness. |
+| hover L shift | -0.05 | 0.04 | -0.05 | 0.04 | -0.3–0.3 | 0.005 |  |
+| active L shift | -0.1 | 0.08 | -0.1 | 0.08 | -0.3–0.3 | 0.005 |  |
+| fill C scale | 1 | 0.9 | 2 | 2 | 0–2 | 0.05 | Multiplies the seed’s chroma. |
+| fill C cap | 0.22 | 0.2 | 0.02 | 0.015 | 0–0.4 | 0.005 |  |
+| label flip L | 0.72 | 0.72 | 0.72 | 0.72 | 0–1 | 0.005 | The label is white on a fill darker than this and dark on a lighter one. 0.72 is where APCA rates the two equal. WCAG 2 puts that point near 0.58. |
 
 #### Secondary
 
 | Input | Toned light | Toned dark | Neutral light | Neutral dark | Range | Step | Meaning |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| fg L | 0.46 | 0.86 | 0.46 | 0.86 | 0–1 | 0.005 |  |
-| fg L hover | 0.4 | 0.86 | 0.4 | 0.86 | 0–1 | 0.005 |  |
-| fg C | 0.17 | 0.13 | 0.008 | 0.015 | 0–0.4 | 0.005 |  |
-| fg l-shift | 0.05 | 0 | 0.05 | 0 | 0–0.3 | 0.005 | Subtracted from the secondary label’s OKLCH lightness so it reads one step stronger than the tint behind it. |
-| tint L | 0.54 | 0.58 | 0.54 | 0.44 | 0–1 | 0.005 |  |
-| tint C | 0.17 | 0.16 | 0.03 | 0.01 | 0–0.4 | 0.005 |  |
+| fg L min | 0.3 | 0.86 | 0.46 | 0.86 | 0–1 | 0.005 |  |
+| fg L max | 0.46 | 0.92 | 0.46 | 0.86 | 0–1 | 0.005 |  |
+| fg hover L shift | -0.06 | 0 | -0.06 | 0 | -0.3–0.3 | 0.005 |  |
+| fg C scale | 1 | 0.75 | 1 | 1 | 0–2 | 0.05 |  |
+| fg C cap | 0.17 | 0.13 | 0.008 | 0.015 | 0–0.4 | 0.005 |  |
+| tint L | 0.54 | 0.58 | 0.54 | 0.44 | 0–1 | 0.005 | Pinned. The seed’s lightness does not reach the tint. |
+| tint C scale | 1 | 1 | 2 | 2 | 0–2 | 0.05 |  |
+| tint C cap | 0.17 | 0.16 | 0.03 | 0.01 | 0–0.4 | 0.005 |  |
 | α rest | 0.1 | 0.215 | 0.1 | 0.24 | 0–1 | 0.005 |  |
 | α hover | 0.15 | 0.29 | 0.15 | 0.34 | 0–1 | 0.005 |  |
 | α active | 0.2 | 0.34 | 0.2 | 0.44 | 0–1 | 0.005 |  |
@@ -362,44 +378,53 @@ Reuses the secondary foreground + tint (no separate Anta constant).
 
 | Input | Toned light | Toned dark | Neutral light | Neutral dark | Range | Step | Meaning |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| fg L | 0.46 | 0.86 | 0.46 | 0.86 | 0–1 | 0.005 |  |
-| fg L hover | 0.4 | 0.86 | 0.4 | 0.86 | 0–1 | 0.005 |  |
-| fg C | 0.17 | 0.13 | 0.008 | 0.015 | 0–0.4 | 0.005 |  |
-| tint L | 0.54 | 0.58 | 0.54 | 0.44 | 0–1 | 0.005 |  |
-| tint C | 0.17 | 0.16 | 0.03 | 0.01 | 0–0.4 | 0.005 |  |
+| fg L min | 0.3 | 0.86 | 0.46 | 0.86 | 0–1 | 0.005 |  |
+| fg L max | 0.46 | 0.92 | 0.46 | 0.86 | 0–1 | 0.005 |  |
+| fg hover L shift | -0.06 | 0 | -0.06 | 0 | -0.3–0.3 | 0.005 |  |
+| fg C scale | 1 | 0.75 | 1 | 1 | 0–2 | 0.05 |  |
+| fg C cap | 0.17 | 0.13 | 0.008 | 0.015 | 0–0.4 | 0.005 |  |
+| tint L | 0.54 | 0.58 | 0.54 | 0.44 | 0–1 | 0.005 | Pinned. The seed’s lightness does not reach the tint. |
+| tint C scale | 1 | 1 | 2 | 2 | 0–2 | 0.05 |  |
+| tint C cap | 0.17 | 0.16 | 0.03 | 0.01 | 0–0.4 | 0.005 |  |
 | α rest | 0.1 | 0.215 | 0.1 | 0.24 | 0–1 | 0.005 |  |
 | α hover | 0.15 | 0.29 | 0.15 | 0.34 | 0–1 | 0.005 |  |
 
 #### Quaternary
 
-Rest (and active) is the tertiary foreground at the rest α; hover uses its own detached lightness at full opacity. No fill.
+Rest (and active) is the tertiary foreground at the rest α; hover uses its own lightness shift at full opacity. No fill.
 
 | Input | Toned light | Toned dark | Neutral light | Neutral dark | Range | Step | Meaning |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| fg L | 0.46 | 0.86 | 0.46 | 0.86 | 0–1 | 0.005 |  |
-| fg C | 0.17 | 0.13 | 0.008 | 0.015 | 0–0.4 | 0.005 |  |
-| hover L | 0.38 | 0.9 | 0.38 | 0.9 | 0–1 | 0.005 | Quaternary hover lightness, detached from tertiary — its own value, not the shared secondary fg-hover. Rest and active carry the rest α; hover is opaque. |
+| fg L min | 0.3 | 0.86 | 0.46 | 0.86 | 0–1 | 0.005 |  |
+| fg L max | 0.46 | 0.92 | 0.46 | 0.86 | 0–1 | 0.005 |  |
+| fg C scale | 1 | 0.75 | 1 | 1 | 0–2 | 0.05 |  |
+| fg C cap | 0.17 | 0.13 | 0.008 | 0.015 | 0–0.4 | 0.005 |  |
+| hover L shift | -0.08 | 0.04 | -0.08 | 0.04 | -0.3–0.3 | 0.005 | Quaternary hover lightness shift, its own value. Rest and active carry the rest α; hover is opaque. |
 | α rest | 0.85 | 0.85 | 0.85 | 0.85 | 0–1 | 0.005 | Alpha on the quaternary rest (and active) foreground. Light-mode neutral needs ≈0.83 to clear WCAG AA (4.5:1) over bg-2. |
 
 ### Tags
 
-Primary is a solid fill; secondary an alpha tint of the tint hue; tertiary an outline. The label and edge are the Text scale — edge = --text-2, label = --text-2 at the label α (80 → --text-3), tunable per Tag (e.g. raise it for small-text contrast). The tint and solid fill are the Tag’s own (source hue at these L/C); alphas set each priority’s strength.
+Primary is a solid fill that takes the seed’s lightness inside a window and its chroma, scaled and capped; its label turns from white to dark above the flip point. Secondary is an alpha tint at a pinned lightness; tertiary an outline. The label and edge are the Text scale — edge = --text-2, label = --text-2 at the label α (--text-3’s), tunable per Tag (e.g. raise it for small-text contrast). Alphas set each priority’s strength. Neutral closes the window to one lightness.
 
 #### Primary
 
-Solid fill; white label.
+Solid fill; the label is white or dark by the fill’s lightness.
 
 | Input | Toned light | Toned dark | Neutral light | Neutral dark | Range | Step | Meaning |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| solid L | 0.58 | 0.46 | 0.55 | 0.48 | 0–1 | 0.005 |  |
-| solid C | 0.175 | 0.165 | 0.015 | 0.015 | 0–0.4 | 0.005 | Chroma of the primary solid fill, independent of the secondary tint’s C. Neutral pins it near-grey. |
+| solid L min | 0.42 | 0.38 | 0.55 | 0.48 | 0–1 | 0.005 |  |
+| solid L max | 0.85 | 0.8 | 0.55 | 0.48 | 0–1 | 0.005 |  |
+| solid C scale | 1 | 0.9 | 2 | 2 | 0–2 | 0.05 | Multiplies the seed’s chroma. |
+| solid C cap | 0.22 | 0.2 | 0.015 | 0.015 | 0–0.4 | 0.005 |  |
+| label flip L | 0.72 | 0.72 | 0.72 | 0.72 | 0–1 | 0.005 | The label is white on a fill darker than this and dark on a lighter one. |
 
 #### Secondary
 
 | Input | Toned light | Toned dark | Neutral light | Neutral dark | Range | Step | Meaning |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | tint L | 0.57 | 0.63 | 0.55 | 0.63 | 0–1 | 0.005 |  |
-| tint C | 0.16 | 0.17 | 0.03 | 0.04 | 0–0.4 | 0.005 |  |
+| tint C scale | 1 | 1 | 3 | 3 | 0–3 | 0.05 |  |
+| tint C cap | 0.16 | 0.17 | 0.03 | 0.04 | 0–0.4 | 0.005 |  |
 | fill α % | 10 | 20 | 10 | 20 | 0–100 | 1 |  |
 | border α % | 15 | 25 | 15 | 25 | 0–100 | 1 |  |
 
@@ -413,11 +438,11 @@ Outline alpha; the edge color is --text-2.
 
 #### Label
 
-Label = --text-2 at this alpha (80 → --text-3). Raise for small-text contrast.
+Label = --text-2 at this alpha, matching --text-3. Raise for small-text contrast.
 
 | Input | Toned light | Toned dark | Neutral light | Neutral dark | Range | Step | Meaning |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| label α % | 80 | 80 | 80 | 80 | 0–100 | 1 |  |
+| label α % | 82 | 80 | 82 | 80 | 0–100 | 1 |  |
 
 ### Tabs
 
@@ -444,27 +469,37 @@ Non-selected label = --text-2 at this alpha (80 → --text-3). Selected/hover us
 
 ### Checkboxes
 
-Hoisted to --_tone-l-* inputs: the checked fill is the source at three lightnesses. In all scope, the off-state box border ramps off that fill mixed toward neutral grey; selected scope keeps it neutral.
+The checked fill takes the seed’s lightness inside a window and its chroma, scaled and capped. Hover and active shift that lightness, and the checkmark turns dark above the flip point. In all scope, the off-state box border ramps off a pinned-lightness version of the tone mixed toward neutral grey; selected scope keeps it neutral. Neutral closes the window to one lightness.
 
 #### Fill
 
 | Input | Toned light | Toned dark | Neutral light | Neutral dark | Range | Step | Meaning |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| L rest | 0.5 | 0.45 | 0.6 | 0.42 | 0–1 | 0.005 |  |
-| L hover | 0.45 | 0.5 | 0.45 | 0.45 | 0–1 | 0.005 |  |
-| L active | 0.4 | 0.57 | 0.4 | 0.5 | 0–1 | 0.005 |  |
+| fill L min | 0.42 | 0.38 | 0.6 | 0.42 | 0–1 | 0.005 |  |
+| fill L max | 0.85 | 0.8 | 0.6 | 0.42 | 0–1 | 0.005 |  |
+| hover L shift | -0.05 | 0.04 | -0.15 | 0.03 | -0.3–0.3 | 0.005 |  |
+| active L shift | -0.1 | 0.08 | -0.2 | 0.08 | -0.3–0.3 | 0.005 |  |
+| fill C scale | 1 | 0.9 | 1 | 1 | 0–2 | 0.05 | Multiplies the seed’s chroma. |
+| fill C cap | 0.22 | 0.2 | 0.4 | 0.4 | 0–0.4 | 0.005 |  |
+| checkmark flip L | 0.72 | 0.72 | 0.72 | 0.72 | 0–1 | 0.005 | The checkmark is light on a fill darker than this and dark on a lighter one. |
+| checkmark L | 0.97 | 0.97 | 0.97 | 0.935 | 0–1 | 0.005 | Lightness of the checkmark on a fill darker than the flip point. |
 
 ### Radio
 
-Identical fill curve to Checkbox: --_tone-l-* set the selected dot at three lightnesses. All scope also ramps the off-ring border from it; selected scope keeps unpicked options neutral.
+Identical fill formula to Checkbox: the selected mark takes the seed’s lightness inside a window, and the dot turns dark above the flip point. All scope also ramps the off-ring border from a pinned-lightness version of the tone; selected scope keeps unpicked options neutral.
 
 #### Fill
 
 | Input | Toned light | Toned dark | Neutral light | Neutral dark | Range | Step | Meaning |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| L rest | 0.5 | 0.45 | 0.6 | 0.42 | 0–1 | 0.005 |  |
-| L hover | 0.45 | 0.5 | 0.45 | 0.45 | 0–1 | 0.005 |  |
-| L active | 0.4 | 0.57 | 0.4 | 0.5 | 0–1 | 0.005 |  |
+| fill L min | 0.42 | 0.38 | 0.6 | 0.42 | 0–1 | 0.005 |  |
+| fill L max | 0.85 | 0.8 | 0.6 | 0.42 | 0–1 | 0.005 |  |
+| hover L shift | -0.05 | 0.04 | -0.15 | 0.03 | -0.3–0.3 | 0.005 |  |
+| active L shift | -0.1 | 0.08 | -0.2 | 0.08 | -0.3–0.3 | 0.005 |  |
+| fill C scale | 1 | 0.9 | 1 | 1 | 0–2 | 0.05 | Multiplies the seed’s chroma. |
+| fill C cap | 0.22 | 0.2 | 0.4 | 0.4 | 0–0.4 | 0.005 |  |
+| dot flip L | 0.72 | 0.72 | 0.72 | 0.72 | 0–1 | 0.005 | The dot is light on a fill darker than this and dark on a lighter one. |
+| dot L | 0.97 | 0.97 | 0.97 | 0.935 | 0–1 | 0.005 | Lightness of the dot on a fill darker than the flip point. |
 
 ### Expander
 

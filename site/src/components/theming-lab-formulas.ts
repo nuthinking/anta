@@ -11,6 +11,12 @@
  * Anta's own generative output — a visual no-op — so only an edited value makes the
  * generative preview diverge from the hand-tuned reference.
  *
+ * Colored tones follow their seed's lightness and chroma within limits, and
+ * Neutral keeps fixed values. The specs express both with one formula: a
+ * lightness window plus a scaled, capped chroma. Neutral's defaults close the
+ * window to one lightness and cap the chroma at its fixed value, so the same
+ * formula reproduces Anta's neutral output.
+ *
  * `vars` is the flat, unique set of constants (drives `defaults()` and `css()`).
  * `groups` is the display split: one entry per priority (or role), listing the keys
  * it exposes. A key may appear in more than one group — a lower priority that
@@ -99,6 +105,22 @@ export const SEED: Record<Tone, string> = {
 const ok = (seed: string, l: number | string, c: number | string) =>
   `oklch(from ${seed} ${l} ${c} h)`
 
+/** A computed constant, trimmed to four decimals as in `tokens.css`. */
+const num = (n: number) => String(+n.toFixed(4))
+
+/** The seed's lightness inside `min…max`, with its chroma scaled and capped.
+ *  Solid fills and text-like foregrounds share this shape. */
+const within = (seed: string, min: number, max: number, scale: number, cap: number) =>
+  `oklch(from ${seed} clamp(${min}, l, ${max}) min(calc(c * ${scale}), ${cap}) h)`
+
+/** `color` with `by` added to its lightness. */
+const shift = (color: string, by: number) => `oklch(from ${color} calc(l + ${by}) c h)`
+
+/** The label or mark on a solid fill: `light` lightness on a fill darker than
+ *  `flip`, 0.15 on a lighter one. */
+const onSolid = (fill: string, flip: number, light = 1) =>
+  `oklch(from ${fill} calc(0.15 + ${num(light - 0.15)} * clamp(0, (${flip} - l) * 1000, 1)) 0 h)`
+
 const v3 = (min = 0, max = 1, step = 0.005) => ({ min, max, step })
 const pct = { min: 0, max: 100, step: 1 }
 
@@ -107,7 +129,7 @@ export const SPECS: ComponentSpec[] = [
     id: 'surface',
     title: 'Background & Borders',
     blurb:
-      'The container background and border role scales, derived from the source hue. Backgrounds sit near the page lightness with a faint tint that grows per step; borders step down in lightness from a saturated edge (border-1) to the faint bg-5, chroma easing off as they lighten. Neutral zeroes chroma to stay grey.',
+      'The container background and border role scales. Each step keeps a pinned lightness: backgrounds sit near the page with a faint tint that grows per step, and borders step from a saturated edge (border-1) to the faint border-5. Chroma scales with the seed. At the reference chroma a step gets the chroma listed here, a more muted seed gets less, and a more vivid one gets at most the headroom multiple. Neutral pins its chroma by setting the reference near zero.',
     vars: [
       { key: 'bg1L', label: 'bg-1 L', light: 1, dark: 0, ...v3() },
       { key: 'bg2L', label: 'bg-2 L', light: 0.99, dark: 0.13, neutral: { light: 0.985, dark: 0.16 }, ...v3() },
@@ -128,50 +150,59 @@ export const SPECS: ComponentSpec[] = [
       { key: 'bd4C', label: 'border-4 C', light: 0.04, dark: 0.06, ...v3(0, 0.4) },
       { key: 'bd5L', label: 'border-5 L', light: 0.935, dark: 0.21, ...v3() },
       { key: 'bd5C', label: 'border-5 C', light: 0.028, dark: 0.045, ...v3(0, 0.4) },
+      { key: 'chromaRef', label: 'reference C', light: 0.17, dark: 0.17, neutral: { light: 0.001, dark: 0.001 }, ...v3(0.001, 0.4, 0.001), tip: 'Seed chroma at which each step gets the chroma listed for it. Neutral sets it near zero, so every step takes its listed chroma.' },
+      { key: 'chromaHeadroom', label: 'C headroom', light: 1.25, dark: 1.25, neutral: { light: 1, dark: 1 }, ...v3(1, 2, 0.05), tip: 'How far above its listed chroma a step may go for a seed more vivid than the reference.' },
     ],
     groups: [
       { label: 'Background', keys: ['bg1L', 'bg2L', 'bg2C', 'bg3L', 'bg3C', 'bg4L', 'bg4C', 'bg5L', 'bg5C'] },
       { label: 'Border', keys: ['bd1L', 'bd1C', 'bd2L', 'bd2C', 'bd3L', 'bd3C', 'bd4L', 'bd4C', 'bd5L', 'bd5C'] },
+      { label: 'Seed chroma', keys: ['chromaRef', 'chromaHeadroom'], note: 'Shared by every background and border step.' },
     ],
-    css: (sel, seed, v) => `${sel} {
+    css: (sel, seed, v) => {
+      const step = (l: number, c: number) =>
+        `oklch(from ${seed} ${l} min(calc(c * ${num(c / v.chromaRef)}), ${num(c * v.chromaHeadroom)}) h)`
+      return `${sel} {
   --bg-1: ${ok(seed, v.bg1L, 0)};
-  --bg-2: ${ok(seed, v.bg2L, v.bg2C)};
-  --bg-3: ${ok(seed, v.bg3L, v.bg3C)};
-  --bg-4: ${ok(seed, v.bg4L, v.bg4C)};
-  --bg-5: ${ok(seed, v.bg5L, v.bg5C)};
-  --border-1: ${ok(seed, v.bd1L, v.bd1C)};
-  --border-2: ${ok(seed, v.bd2L, v.bd2C)};
-  --border-3: ${ok(seed, v.bd3L, v.bd3C)};
-  --border-4: ${ok(seed, v.bd4L, v.bd4C)};
-  --border-5: ${ok(seed, v.bd5L, v.bd5C)};
-}`,
+  --bg-2: ${step(v.bg2L, v.bg2C)};
+  --bg-3: ${step(v.bg3L, v.bg3C)};
+  --bg-4: ${step(v.bg4L, v.bg4C)};
+  --bg-5: ${step(v.bg5L, v.bg5C)};
+  --border-1: ${step(v.bd1L, v.bd1C)};
+  --border-2: ${step(v.bd2L, v.bd2C)};
+  --border-3: ${step(v.bd3L, v.bd3C)};
+  --border-4: ${step(v.bd4L, v.bd4C)};
+  --border-5: ${step(v.bd5L, v.bd5C)};
+}`
+    },
   },
 
   {
     id: 'text',
     title: 'Text',
     blurb:
-      'The text color role scale, derived from the source hue. text-1 is the strong primary; text-2 the base (secondary); text-3/4 step text-2 down by alpha — Title and Text read text-1..4 as their priorities. text-5 is the faintest step (text-2 at a lower alpha), used for disabled / hint text across components, not a Title/Text priority.',
+      'The text color role scale. text-2 is the base: it takes the seed’s lightness inside a window, which keeps it readable on a surface, and the seed’s chroma, scaled and capped. text-1 is the strong primary, a lightness step away from text-2 with less chroma. text-3/4 step text-2 down by alpha; Title and Text read text-1..4 as their priorities. text-5 is the faintest step (the disabled / hint tone). Neutral closes the window to one lightness.',
     vars: [
-      { key: 'priL', label: 'text-1 L', light: 0.38, dark: 0.85, neutral: { light: 0.1, dark: 0.94 }, ...v3() },
-      { key: 'priC', label: 'text-1 C', light: 0.11, dark: 0.1, neutral: { light: 0.01, dark: 0.008 }, ...v3(0, 0.4) },
-      { key: 'baseL', label: 'text-2 L', light: 0.43, dark: 0.77, neutral: { light: 0.3, dark: 0.8 }, ...v3() },
-      { key: 'baseC', label: 'text-2 C', light: 0.15, dark: 0.11, neutral: { light: 0.015, dark: 0.015 }, ...v3(0, 0.4) },
+      { key: 'fgMin', label: 'text-2 L min', light: 0.3, dark: 0.86, neutral: { light: 0.3, dark: 0.8 }, ...v3(), tip: 'Lower end of the lightness window. In dark mode this end sets contrast with the surface.' },
+      { key: 'fgMax', label: 'text-2 L max', light: 0.46, dark: 0.92, neutral: { light: 0.3, dark: 0.8 }, ...v3(), tip: 'Upper end of the lightness window. In light mode this end sets contrast with the surface.' },
+      { key: 'fgScale', label: 'text-2 C scale', light: 1, dark: 0.75, neutral: { light: 1, dark: 1 }, ...v3(0, 2, 0.05), tip: 'Multiplies the seed’s chroma.' },
+      { key: 'fgCap', label: 'text-2 C cap', light: 0.17, dark: 0.13, neutral: { light: 0.015, dark: 0.015 }, ...v3(0, 0.4) },
+      { key: 'strongShift', label: 'text-1 L shift', light: -0.05, dark: 0.04, neutral: { light: -0.2, dark: 0.14 }, ...v3(-0.5, 0.5), tip: 'Added to text-2’s lightness.' },
+      { key: 'strongChroma', label: 'text-1 C scale', light: 0.75, dark: 0.75, neutral: { light: 0.6667, dark: 0.5333 }, ...v3(0, 2, 0.05), tip: 'Multiplies text-2’s chroma.' },
       { key: 'tertA', label: 'text-3 α %', light: 82, dark: 80, ...pct },
       { key: 'quatA', label: 'text-4 α %', light: 66, dark: 62, ...pct },
       { key: 'quinA', label: 'text-5 α %', light: 40, dark: 40, ...pct },
     ],
     groups: [
-      { label: 'Primary', keys: ['priL', 'priC'], note: 'text-1.' },
-      { label: 'Secondary', keys: ['baseL', 'baseC'], note: 'text-2 base.' },
+      { label: 'Secondary', keys: ['fgMin', 'fgMax', 'fgScale', 'fgCap'], note: 'text-2 base.' },
+      { label: 'Primary', keys: ['strongShift', 'strongChroma'], note: 'text-1, derived from text-2.' },
       { label: 'Tertiary', keys: ['tertA'], note: 'text-2 base at this alpha (→ text-3).' },
       { label: 'Quaternary', keys: ['quatA'], note: 'text-2 base at this alpha (→ text-4).' },
       { label: 'Faint (text-5)', keys: ['quinA'], note: 'text-2 base at this alpha (→ text-5) — the disabled / hint step, not a Title/Text priority.' },
     ],
     tokens: true,
     css: (sel, seed, v) => `${sel} {
-  --text-1: ${ok(seed, v.priL, v.priC)};
-  --text-2: ${ok(seed, v.baseL, v.baseC)};
+  --text-2: ${within(seed, v.fgMin, v.fgMax, v.fgScale, v.fgCap)};
+  --text-1: oklch(from var(--text-2) calc(l + ${v.strongShift}) calc(c * ${v.strongChroma}) h);
   --text-3: color-mix(in oklch, var(--text-2) ${v.tertA}%, transparent);
   --text-4: color-mix(in oklch, var(--text-2) ${v.quatA}%, transparent);
   --text-5: color-mix(in oklch, var(--text-2) ${v.quinA}%, transparent);
@@ -182,82 +213,97 @@ export const SPECS: ComponentSpec[] = [
     id: 'button',
     title: 'Buttons',
     blurb:
-      'Primary is the source fill at three lightnesses. Secondary, tertiary, and quaternary share one foreground; secondary and tertiary share an alpha-tinted fill (tertiary a step softer, transparent at rest), quaternary has none. Secondary’s label subtracts an l-shift to read a step stronger than its tint.',
+      'The primary fill takes the seed’s lightness inside a window and its chroma, scaled and capped. Hover and active shift that lightness, and the label turns from white to dark above the flip point. Secondary, tertiary, and quaternary share one foreground, which takes the seed’s lightness inside a narrower window. Secondary and tertiary share an alpha-tinted fill at a pinned lightness (tertiary a step softer, transparent at rest); quaternary has none. Neutral closes both windows to one lightness.',
     vars: [
-      { key: 'plRest', label: 'L rest', light: 0.51, dark: 0.4, neutral: { light: 0.5 }, ...v3() },
-      { key: 'plHover', label: 'L hover', light: 0.46, dark: 0.44, neutral: { light: 0.45 }, ...v3() },
-      { key: 'plActive', label: 'L active', light: 0.41, dark: 0.48, neutral: { light: 0.4 }, ...v3() },
-      { key: 'plC', label: 'fill C', light: 0.17, dark: 0.16, neutral: { light: 0.02, dark: 0.015 }, ...v3(0, 0.4), tip: 'One chroma for the primary fill across rest/hover/active. Neutral pins it near-grey; toned versions set the saturation here instead of inheriting the seed’s own chroma.' },
-      { key: 'fgL', label: 'fg L', light: 0.46, dark: 0.86, ...v3() },
-      { key: 'fgStrongL', label: 'fg L hover', light: 0.4, dark: 0.86, ...v3() },
-      { key: 'fgC', label: 'fg C', light: 0.17, dark: 0.13, neutral: { light: 0.008, dark: 0.015 }, ...v3(0, 0.4) },
-      { key: 'fgShift', label: 'fg l-shift', light: 0.05, dark: 0, ...v3(0, 0.3), tip: 'Subtracted from the secondary label’s OKLCH lightness so it reads one step stronger than the tint behind it.' },
-      { key: 'bgL', label: 'tint L', light: 0.54, dark: 0.58, neutral: { dark: 0.44 }, ...v3() },
-      { key: 'bgC', label: 'tint C', light: 0.17, dark: 0.16, neutral: { light: 0.03, dark: 0.01 }, ...v3(0, 0.4) },
+      { key: 'solidMin', label: 'fill L min', light: 0.42, dark: 0.38, neutral: { light: 0.5, dark: 0.4 }, ...v3(), tip: 'A darker seed is raised to this lightness.' },
+      { key: 'solidMax', label: 'fill L max', light: 0.85, dark: 0.8, neutral: { light: 0.5, dark: 0.4 }, ...v3(), tip: 'A lighter seed is lowered to this lightness.' },
+      { key: 'solidHover', label: 'hover L shift', light: -0.05, dark: 0.04, ...v3(-0.3, 0.3) },
+      { key: 'solidActive', label: 'active L shift', light: -0.1, dark: 0.08, ...v3(-0.3, 0.3) },
+      { key: 'solidScale', label: 'fill C scale', light: 1, dark: 0.9, neutral: { light: 2, dark: 2 }, ...v3(0, 2, 0.05), tip: 'Multiplies the seed’s chroma.' },
+      { key: 'solidCap', label: 'fill C cap', light: 0.22, dark: 0.2, neutral: { light: 0.02, dark: 0.015 }, ...v3(0, 0.4) },
+      { key: 'flip', label: 'label flip L', light: 0.72, dark: 0.72, ...v3(), tip: 'The label is white on a fill darker than this and dark on a lighter one. 0.72 is where APCA rates the two equal. WCAG 2 puts that point near 0.58.' },
+      { key: 'fgMin', label: 'fg L min', light: 0.3, dark: 0.86, neutral: { light: 0.46, dark: 0.86 }, ...v3() },
+      { key: 'fgMax', label: 'fg L max', light: 0.46, dark: 0.92, neutral: { light: 0.46, dark: 0.86 }, ...v3() },
+      { key: 'fgHover', label: 'fg hover L shift', light: -0.06, dark: 0, ...v3(-0.3, 0.3) },
+      { key: 'fgScale', label: 'fg C scale', light: 1, dark: 0.75, neutral: { light: 1, dark: 1 }, ...v3(0, 2, 0.05) },
+      { key: 'fgCap', label: 'fg C cap', light: 0.17, dark: 0.13, neutral: { light: 0.008, dark: 0.015 }, ...v3(0, 0.4) },
+      { key: 'bgL', label: 'tint L', light: 0.54, dark: 0.58, neutral: { dark: 0.44 }, ...v3(), tip: 'Pinned. The seed’s lightness does not reach the tint.' },
+      { key: 'tintScale', label: 'tint C scale', light: 1, dark: 1, neutral: { light: 2, dark: 2 }, ...v3(0, 2, 0.05) },
+      { key: 'tintCap', label: 'tint C cap', light: 0.17, dark: 0.16, neutral: { light: 0.03, dark: 0.01 }, ...v3(0, 0.4) },
       { key: 'aRest', label: 'α rest', light: 0.1, dark: 0.215, neutral: { dark: 0.24 }, ...v3() },
       { key: 'aHover', label: 'α hover', light: 0.15, dark: 0.29, neutral: { dark: 0.34 }, ...v3() },
       { key: 'aActive', label: 'α active', light: 0.2, dark: 0.34, neutral: { dark: 0.44 }, ...v3() },
-      { key: 'quatHoverL', label: 'hover L', light: 0.38, dark: 0.9, ...v3(), tip: 'Quaternary hover lightness, detached from tertiary — its own value, not the shared secondary fg-hover. Rest and active carry the rest α; hover is opaque.' },
+      { key: 'quatHover', label: 'hover L shift', light: -0.08, dark: 0.04, ...v3(-0.3, 0.3), tip: 'Quaternary hover lightness shift, its own value. Rest and active carry the rest α; hover is opaque.' },
       { key: 'quatRestA', label: 'α rest', light: 0.85, dark: 0.85, ...v3(), tip: 'Alpha on the quaternary rest (and active) foreground. Light-mode neutral needs ≈0.83 to clear WCAG AA (4.5:1) over bg-2.' },
     ],
     groups: [
-      { label: 'Primary', keys: ['plRest', 'plHover', 'plActive', 'plC'] },
-      { label: 'Secondary', keys: ['fgL', 'fgStrongL', 'fgC', 'fgShift', 'bgL', 'bgC', 'aRest', 'aHover', 'aActive'] },
-      { label: 'Tertiary', keys: ['fgL', 'fgStrongL', 'fgC', 'bgL', 'bgC', 'aRest', 'aHover'], note: 'Reuses the secondary foreground + tint (no separate Anta constant).' },
-      { label: 'Quaternary', keys: ['fgL', 'fgC', 'quatHoverL', 'quatRestA'], note: 'Rest (and active) is the tertiary foreground at the rest α; hover uses its own detached lightness at full opacity. No fill.' },
+      { label: 'Primary', keys: ['solidMin', 'solidMax', 'solidHover', 'solidActive', 'solidScale', 'solidCap', 'flip'] },
+      { label: 'Secondary', keys: ['fgMin', 'fgMax', 'fgHover', 'fgScale', 'fgCap', 'bgL', 'tintScale', 'tintCap', 'aRest', 'aHover', 'aActive'] },
+      { label: 'Tertiary', keys: ['fgMin', 'fgMax', 'fgHover', 'fgScale', 'fgCap', 'bgL', 'tintScale', 'tintCap', 'aRest', 'aHover'], note: 'Reuses the secondary foreground + tint (no separate Anta constant).' },
+      { label: 'Quaternary', keys: ['fgMin', 'fgMax', 'fgScale', 'fgCap', 'quatHover', 'quatRestA'], note: 'Rest (and active) is the tertiary foreground at the rest α; hover uses its own lightness shift at full opacity. No fill.' },
     ],
-    css: (sel, seed, v) => `${sel} {
-  --button-bg-primary-rest:   ${ok(seed, v.plRest, v.plC)};
-  --button-bg-primary-hover:  ${ok(seed, v.plHover, v.plC)};
-  --button-bg-primary-active: ${ok(seed, v.plActive, v.plC)};
+    css: (sel, seed, v) => {
+      const tint = (a: number) => `oklch(from ${seed} ${v.bgL} min(calc(c * ${v.tintScale}), ${v.tintCap}) h / ${a})`
+      return `${sel} {
+  --_solid: ${within(seed, v.solidMin, v.solidMax, v.solidScale, v.solidCap)};
+  --_fg:    ${within(seed, v.fgMin, v.fgMax, v.fgScale, v.fgCap)};
 
-  --button-fg-secondary-rest:   ${ok(seed, v.fgL, v.fgC)};
-  --button-fg-secondary-hover:  ${ok(seed, v.fgStrongL, v.fgC)};
-  --button-fg-tertiary-rest:    ${ok(seed, v.fgL, v.fgC)};
-  --button-fg-tertiary-hover:   ${ok(seed, v.fgStrongL, v.fgC)};
-  --button-fg-quaternary-rest:  oklch(from ${seed} ${v.fgL} ${v.fgC} h / ${v.quatRestA});
-  --button-fg-quaternary-hover: oklch(from ${seed} ${v.quatHoverL} ${v.fgC} h);
-  --button-fg-secondary-l-shift: ${v.fgShift};
+  --button-bg-primary-rest:   var(--_solid);
+  --button-bg-primary-hover:  ${shift('var(--_solid)', v.solidHover)};
+  --button-bg-primary-active: ${shift('var(--_solid)', v.solidActive)};
+  --button-fg-primary-rest:   ${onSolid('var(--button-bg-primary-rest)', v.flip)};
 
-  --button-bg-secondary-rest:   oklch(from ${seed} ${v.bgL} ${v.bgC} h / ${v.aRest});
-  --button-bg-secondary-hover:  oklch(from ${seed} ${v.bgL} ${v.bgC} h / ${v.aHover});
-  --button-bg-secondary-active: oklch(from ${seed} ${v.bgL} ${v.bgC} h / ${v.aActive});
-  --button-bg-tertiary-hover:   oklch(from ${seed} ${v.bgL} ${v.bgC} h / ${v.aRest});
-  --button-bg-tertiary-active:  oklch(from ${seed} ${v.bgL} ${v.bgC} h / ${v.aHover});
-}`,
+  --button-fg-secondary-rest:   var(--_fg);
+  --button-fg-secondary-hover:  ${shift('var(--_fg)', v.fgHover)};
+  --button-fg-tertiary-rest:    var(--_fg);
+  --button-fg-tertiary-hover:   ${shift('var(--_fg)', v.fgHover)};
+  --button-fg-quaternary-rest:  oklch(from var(--_fg) l c h / ${v.quatRestA});
+  --button-fg-quaternary-hover: ${shift('var(--_fg)', v.quatHover)};
+
+  --button-bg-secondary-rest:   ${tint(v.aRest)};
+  --button-bg-secondary-hover:  ${tint(v.aHover)};
+  --button-bg-secondary-active: ${tint(v.aActive)};
+  --button-bg-tertiary-hover:   ${tint(v.aRest)};
+  --button-bg-tertiary-active:  ${tint(v.aHover)};
+}`
+    },
   },
 
   {
     id: 'tag',
     title: 'Tags',
     blurb:
-      'Primary is a solid fill; secondary an alpha tint of the tint hue; tertiary an outline. The label and edge are the Text scale — edge = --text-2, label = --text-2 at the label α (80 → --text-3), tunable per Tag (e.g. raise it for small-text contrast). The tint and solid fill are the Tag’s own (source hue at these L/C); alphas set each priority’s strength.',
+      'Primary is a solid fill that takes the seed’s lightness inside a window and its chroma, scaled and capped; its label turns from white to dark above the flip point. Secondary is an alpha tint at a pinned lightness; tertiary an outline. The label and edge are the Text scale — edge = --text-2, label = --text-2 at the label α (--text-3’s), tunable per Tag (e.g. raise it for small-text contrast). Alphas set each priority’s strength. Neutral closes the window to one lightness.',
     vars: [
-      { key: 'bgSolidL', label: 'solid L', light: 0.58, dark: 0.46, neutral: { light: 0.55, dark: 0.48 }, ...v3() },
-      { key: 'bgSolidC', label: 'solid C', light: 0.175, dark: 0.165, neutral: { light: 0.015, dark: 0.015 }, ...v3(0, 0.4), tip: 'Chroma of the primary solid fill, independent of the secondary tint’s C. Neutral pins it near-grey.' },
+      { key: 'solidMin', label: 'solid L min', light: 0.42, dark: 0.38, neutral: { light: 0.55, dark: 0.48 }, ...v3() },
+      { key: 'solidMax', label: 'solid L max', light: 0.85, dark: 0.8, neutral: { light: 0.55, dark: 0.48 }, ...v3() },
+      { key: 'solidScale', label: 'solid C scale', light: 1, dark: 0.9, neutral: { light: 2, dark: 2 }, ...v3(0, 2, 0.05), tip: 'Multiplies the seed’s chroma.' },
+      { key: 'solidCap', label: 'solid C cap', light: 0.22, dark: 0.2, neutral: { light: 0.015, dark: 0.015 }, ...v3(0, 0.4) },
+      { key: 'flip', label: 'label flip L', light: 0.72, dark: 0.72, ...v3(), tip: 'The label is white on a fill darker than this and dark on a lighter one.' },
       { key: 'tintL', label: 'tint L', light: 0.57, dark: 0.63, neutral: { light: 0.55 }, ...v3() },
-      { key: 'tintC', label: 'tint C', light: 0.16, dark: 0.17, neutral: { light: 0.03, dark: 0.04 }, ...v3(0, 0.4) },
+      { key: 'tintScale', label: 'tint C scale', light: 1, dark: 1, neutral: { light: 3, dark: 3 }, ...v3(0, 3, 0.05) },
+      { key: 'tintCap', label: 'tint C cap', light: 0.16, dark: 0.17, neutral: { light: 0.03, dark: 0.04 }, ...v3(0, 0.4) },
       { key: 'bgAlpha', label: 'fill α %', light: 10, dark: 20, ...pct },
       { key: 'borderAlpha', label: 'border α %', light: 15, dark: 25, ...pct },
       { key: 'edgeAlpha', label: 'edge α %', light: 20, dark: 30, ...pct },
-      { key: 'textA', label: 'label α %', light: 80, dark: 80, ...pct },
+      { key: 'textA', label: 'label α %', light: 82, dark: 80, ...pct },
     ],
     groups: [
-      { label: 'Primary', keys: ['bgSolidL', 'bgSolidC'], note: 'Solid fill; white label.' },
-      { label: 'Secondary', keys: ['tintL', 'tintC', 'bgAlpha', 'borderAlpha'] },
+      { label: 'Primary', keys: ['solidMin', 'solidMax', 'solidScale', 'solidCap', 'flip'], note: 'Solid fill; the label is white or dark by the fill’s lightness.' },
+      { label: 'Secondary', keys: ['tintL', 'tintScale', 'tintCap', 'bgAlpha', 'borderAlpha'] },
       { label: 'Tertiary', keys: ['edgeAlpha'], note: 'Outline alpha; the edge color is --text-2.' },
-      { label: 'Label', keys: ['textA'], note: 'Label = --text-2 at this alpha (80 → --text-3). Raise for small-text contrast.' },
+      { label: 'Label', keys: ['textA'], note: 'Label = --text-2 at this alpha, matching --text-3. Raise for small-text contrast.' },
     ],
     css: (sel, seed, v) => `${sel} {
-  --tag-tint:     ${ok(seed, v.tintL, v.tintC)};
-  --tag-bg-solid: ${ok(seed, v.bgSolidL, v.bgSolidC)};
+  --tag-tint:     oklch(from ${seed} ${v.tintL} min(calc(c * ${v.tintScale}), ${v.tintCap}) h);
+  --tag-bg-solid: ${within(seed, v.solidMin, v.solidMax, v.solidScale, v.solidCap)};
   --tag-edge:     var(--text-2);
   --tag-text:     color-mix(in oklch, var(--text-2) ${v.textA}%, transparent);
   --_tag-bg-alpha:     ${v.bgAlpha}%;
   --_tag-border-alpha: ${v.borderAlpha}%;
   --_tag-edge-alpha:   ${v.edgeAlpha}%;
 }
-${sel}[priority="primary"] { --tag-text: #fff; }`,
+${sel}[priority="primary"] { --tag-text: ${onSolid('var(--tag-bg-solid)', v.flip)}; }`,
   },
 
   {
@@ -291,17 +337,23 @@ ${sel}[priority="primary"] { --tag-text: #fff; }`,
     id: 'checkbox',
     title: 'Checkboxes',
     blurb:
-      'Hoisted to --_tone-l-* inputs: the checked fill is the source at three lightnesses. In all scope, the off-state box border ramps off that fill mixed toward neutral grey; selected scope keeps it neutral.',
+      'The checked fill takes the seed’s lightness inside a window and its chroma, scaled and capped. Hover and active shift that lightness, and the checkmark turns dark above the flip point. In all scope, the off-state box border ramps off a pinned-lightness version of the tone mixed toward neutral grey; selected scope keeps it neutral. Neutral closes the window to one lightness.',
     vars: [
-      { key: 'lRest', label: 'L rest', light: 0.5, dark: 0.45, neutral: { light: 0.6, dark: 0.42 }, ...v3() },
-      { key: 'lHover', label: 'L hover', light: 0.45, dark: 0.5, neutral: { dark: 0.45 }, ...v3() },
-      { key: 'lActive', label: 'L active', light: 0.4, dark: 0.57, neutral: { dark: 0.5 }, ...v3() },
+      { key: 'solidMin', label: 'fill L min', light: 0.42, dark: 0.38, neutral: { light: 0.6, dark: 0.42 }, ...v3() },
+      { key: 'solidMax', label: 'fill L max', light: 0.85, dark: 0.8, neutral: { light: 0.6, dark: 0.42 }, ...v3() },
+      { key: 'solidHover', label: 'hover L shift', light: -0.05, dark: 0.04, neutral: { light: -0.15, dark: 0.03 }, ...v3(-0.3, 0.3) },
+      { key: 'solidActive', label: 'active L shift', light: -0.1, dark: 0.08, neutral: { light: -0.2, dark: 0.08 }, ...v3(-0.3, 0.3) },
+      { key: 'solidScale', label: 'fill C scale', light: 1, dark: 0.9, neutral: { light: 1, dark: 1 }, ...v3(0, 2, 0.05), tip: 'Multiplies the seed’s chroma.' },
+      { key: 'solidCap', label: 'fill C cap', light: 0.22, dark: 0.2, neutral: { light: 0.4, dark: 0.4 }, ...v3(0, 0.4) },
+      { key: 'flip', label: 'checkmark flip L', light: 0.72, dark: 0.72, ...v3(), tip: 'The checkmark is light on a fill darker than this and dark on a lighter one.' },
+      { key: 'markL', label: 'checkmark L', light: 0.97, dark: 0.97, neutral: { dark: 0.935 }, ...v3(), tip: 'Lightness of the checkmark on a fill darker than the flip point.' },
     ],
-    groups: [{ label: 'Fill', keys: ['lRest', 'lHover', 'lActive'] }],
-    css: (sel, _seed, v) => `${sel} {
-  --_tone-l-rest: ${v.lRest};
-  --_tone-l-hover: ${v.lHover};
-  --_tone-l-active: ${v.lActive};
+    groups: [{ label: 'Fill', keys: ['solidMin', 'solidMax', 'solidHover', 'solidActive', 'solidScale', 'solidCap', 'flip', 'markL'] }],
+    css: (sel, seed, v) => `${sel} {
+  --checkbox-bg-selected: ${within(seed, v.solidMin, v.solidMax, v.solidScale, v.solidCap)};
+  --checkbox-bg-selected-hover: ${shift('var(--checkbox-bg-selected)', v.solidHover)};
+  --checkbox-bg-selected-active: ${shift('var(--checkbox-bg-selected)', v.solidActive)};
+  --checkbox-icon: ${onSolid('var(--checkbox-bg-selected)', v.flip, v.markL)};
 }`,
   },
 
@@ -309,17 +361,23 @@ ${sel}[priority="primary"] { --tag-text: #fff; }`,
     id: 'radio',
     title: 'Radio',
     blurb:
-      'Identical fill curve to Checkbox: --_tone-l-* set the selected dot at three lightnesses. All scope also ramps the off-ring border from it; selected scope keeps unpicked options neutral.',
+      'Identical fill formula to Checkbox: the selected mark takes the seed’s lightness inside a window, and the dot turns dark above the flip point. All scope also ramps the off-ring border from a pinned-lightness version of the tone; selected scope keeps unpicked options neutral.',
     vars: [
-      { key: 'lRest', label: 'L rest', light: 0.5, dark: 0.45, neutral: { light: 0.6, dark: 0.42 }, ...v3() },
-      { key: 'lHover', label: 'L hover', light: 0.45, dark: 0.5, neutral: { dark: 0.45 }, ...v3() },
-      { key: 'lActive', label: 'L active', light: 0.4, dark: 0.57, neutral: { dark: 0.5 }, ...v3() },
+      { key: 'solidMin', label: 'fill L min', light: 0.42, dark: 0.38, neutral: { light: 0.6, dark: 0.42 }, ...v3() },
+      { key: 'solidMax', label: 'fill L max', light: 0.85, dark: 0.8, neutral: { light: 0.6, dark: 0.42 }, ...v3() },
+      { key: 'solidHover', label: 'hover L shift', light: -0.05, dark: 0.04, neutral: { light: -0.15, dark: 0.03 }, ...v3(-0.3, 0.3) },
+      { key: 'solidActive', label: 'active L shift', light: -0.1, dark: 0.08, neutral: { light: -0.2, dark: 0.08 }, ...v3(-0.3, 0.3) },
+      { key: 'solidScale', label: 'fill C scale', light: 1, dark: 0.9, neutral: { light: 1, dark: 1 }, ...v3(0, 2, 0.05), tip: 'Multiplies the seed’s chroma.' },
+      { key: 'solidCap', label: 'fill C cap', light: 0.22, dark: 0.2, neutral: { light: 0.4, dark: 0.4 }, ...v3(0, 0.4) },
+      { key: 'flip', label: 'dot flip L', light: 0.72, dark: 0.72, ...v3(), tip: 'The dot is light on a fill darker than this and dark on a lighter one.' },
+      { key: 'markL', label: 'dot L', light: 0.97, dark: 0.97, neutral: { dark: 0.935 }, ...v3(), tip: 'Lightness of the dot on a fill darker than the flip point.' },
     ],
-    groups: [{ label: 'Fill', keys: ['lRest', 'lHover', 'lActive'] }],
-    css: (sel, _seed, v) => `${sel} {
-  --_tone-l-rest: ${v.lRest};
-  --_tone-l-hover: ${v.lHover};
-  --_tone-l-active: ${v.lActive};
+    groups: [{ label: 'Fill', keys: ['solidMin', 'solidMax', 'solidHover', 'solidActive', 'solidScale', 'solidCap', 'flip', 'markL'] }],
+    css: (sel, seed, v) => `${sel} {
+  --radio-bg-selected: ${within(seed, v.solidMin, v.solidMax, v.solidScale, v.solidCap)};
+  --radio-bg-selected-hover: ${shift('var(--radio-bg-selected)', v.solidHover)};
+  --radio-bg-selected-active: ${shift('var(--radio-bg-selected)', v.solidActive)};
+  --radio-dot: ${onSolid('var(--radio-bg-selected)', v.flip, v.markL)};
 }`,
   },
 
