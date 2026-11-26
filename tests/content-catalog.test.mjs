@@ -40,6 +40,7 @@ async function fixture(t, entries) {
 // Expected sidebar order, links, icons, and labels.
 const expectedSidebar = [
   ["/", "info", "Overview"],
+  ["/principles/", "book-open", "Principles"],
   ["/comparison/", "table-2", "Comparison"],
   ["/install/", "download", "Install and configure"],
   ["/normalization/", "book-a", "Normalization"],
@@ -89,7 +90,7 @@ test('the content catalog supplies sidebar groups, links, icons, and labels', as
   const groups = getNavigationGroups(catalog)
   assert.deepEqual(groups.flatMap(group => getNavigationTree(group.pages).map(page => [page.path, page.nav.icon, page.label])), expectedSidebar)
   assert.deepEqual(groups.filter(group => group.title).map(group => group.title), ['Components', 'Packages'])
-  assert.deepEqual(groups.map(group => getNavigationTree(group.pages).length), [2, 2, 4, 6, 2, 8, 6, 6, 3, 4])
+  assert.deepEqual(groups.map(group => getNavigationTree(group.pages).length), [3, 2, 4, 6, 2, 8, 6, 6, 3, 4])
   assert.equal(catalog.find(page => page.path === '/input-date/').breadcrumbLabel, 'InputDate')
   assert.equal(catalog.find(page => page.path === '/changelog/dev/').breadcrumbLabel, 'Changelog')
   assert.equal(catalog.find(page => page.path === '/table/').kind, 'package')

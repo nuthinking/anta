@@ -11,6 +11,23 @@ This pnpm workspace contains five publishable packages and one private site:
 - `@antadesign/typedoc-theme` — the separate TypeDoc theme package in `typedoc-theme/`.
 - `site/` — the documentation site; it is not published to npm.
 
+## Positioning and principles
+
+Anta is a component system for technical products: consoles, developer tools,
+and data-heavy applications. `site/src/pages/principles.mdx` is the public
+source for its principles:
+
+- Build for technical products.
+- Serve great design. Anta defines behavior and accessibility; the look stays
+  open to the application's designer.
+- Leave the DOM to the application.
+- Test with generated states and actions.
+
+Check public copy, examples, themes, and component proposals against them. The
+positioning sentence also appears on the homepage (`site/src/pages/index.astro`),
+in `site/lib/llms/index-content.mjs`, in the `DocsLayout.astro` description, and
+in the README introduction. Change them together.
+
 ## Task routing
 
 Read the closest guidance before changing a scoped area:

@@ -1,9 +1,12 @@
 # @antadesign/anta
 
-**Anta** is an opinionated design system. It provides
-design tokens, declarative web components, and typed JSX wrappers. Use the same
-components in React, Preact via compat, plain HTML, and custom JSX runtimes via
-`configure()`.
+**Anta** is a component system for technical products: consoles, developer
+tools, and data-heavy applications. It provides design tokens, declarative web
+components, and typed JSX wrappers. Use the same components in React, Preact via
+compat, plain HTML, and custom JSX runtimes via `configure()`.
+
+Anta defines behavior and accessibility, and leaves the look to your design. See
+the [principles](./docs/principles.md).
 
 ## License
 
