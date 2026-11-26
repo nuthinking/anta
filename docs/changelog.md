@@ -3,6 +3,16 @@
 This page tracks changes that ship in `@antadesign/anta`. Documentation-only
 changes are not listed.
 
+## Unreleased
+
+### Changed
+
+- [Color seeds](/theming/#color-seeds) pass their lightness and chroma to colored tones within limits. Button, Checkbox, Radio, Switch, and Tag fills take the seed's lightness, and their label or mark turns dark on a light fill. Toned text, backgrounds, and borders take the seed's chroma. Default tones change as a result: light-mode fills now equal their seeds, so the warning Button fill moves from `#a64600` to `#c37416`.
+
+### Fixed
+
+- [Slider](/slider/) keeps committed drag values within the current bounds when they change mid-drag.
+
 ## 0.3.39 — November 22, 2026
 
 ### Added

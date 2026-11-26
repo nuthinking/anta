@@ -6,104 +6,123 @@ import ColorPicker from './ColorPicker'
 import styles from './SeedLab.module.css'
 
 /**
- * Seed lab. A proposal for letting a tone seed's lightness and chroma reach the
- * derived colors within limits. Most shipped formulas keep only the seed's hue.
+ * Seed lab. Anta's colored tones follow their seed's lightness and chroma within
+ * limits. This page shows what those limits do and compares the result with
+ * the hue-only derivation that shipped through 0.3.39.
  *
  * Each panel sets `--anta-seed-brand` to the picked seed and renders brand-toned
- * components twice. "Today" is the shipped result. "Proposal" adds overrides
- * built on three shared colors: `--_solid`, `--_on-solid`, and `--_fg`.
+ * components twice. "Now" is the shipped result. "Before" overrides it with the
+ * earlier fixed-lightness formulas, kept in `LEGACY`.
  *
  * Roles fall into three classes:
  * - Solid fills take the seed's lightness inside a wide window. The label on
- *   top switches between white and dark at `flip`.
+ *   top switches between white and dark at the flip point.
  * - Text-like foregrounds take the seed's lightness inside a narrow window,
  *   bounded by the surface behind them.
- * - Tints keep a pinned lightness.
+ * - Tinted backgrounds and borders keep a pinned lightness.
  * Every chroma is the seed's own, scaled and capped.
  *
- * Three limits are design choices with no correct value, so the page exposes
- * them as sliders and reports the worst contrast each setting allows across all
- * hues. `LIMITS` holds the defaults and the constants that are not exposed.
+ * Three limits are design choices with no correct value. The page exposes them
+ * as sliders that set the library's `--anta-solid-*`, `--anta-on-solid-flip`,
+ * and `--anta-fg-*` variables on the panel, and reports the worst contrast each
+ * setting allows across all hues.
  */
 
 type Scheme = 'light' | 'dark'
 
+/** The limits this page reads or changes. Defaults mirror `src/tokens.css`. */
 interface Limits {
-  /** Lightness window for solid fills. */
+  /** `--anta-solid-l-min` and `--anta-solid-l-max`. */
   solid: [number, number]
-  /** Added to the resting fill's lightness on hover and while pressed. */
-  solidHover: number
-  solidActive: number
+  /** `--anta-solid-c-scale` and `--anta-solid-c-max`. */
   solidChroma: { scale: number; cap: number }
-  /** The label is white on a fill darker than this, and dark on a lighter one.
-   *  0.72 is where APCA rates the two labels equal, within 0.03 across hues.
-   *  WCAG 2 puts that point near 0.58, so a white label on a fill between the
-   *  two is below 4.5:1. */
+  /** `--anta-on-solid-flip`. The label is white on a fill darker than this, and
+   *  dark on a lighter one. 0.72 is where APCA rates the two labels equal,
+   *  within 0.03 across hues. WCAG 2 puts that point near 0.58, so a white
+   *  label on a fill between the two is below 4.5:1. */
   flip: number
   /** Lightness of the dark label. */
   onLight: number
-  /** Lightness window for text-like foregrounds. */
+  /** `--anta-fg-l-min` and `--anta-fg-l-max`. */
   fg: [number, number]
-  fgHover: number
-  fgQuaternaryHover: number
-  fgChroma: { scale: number; cap: number }
-  /** Pinned lightness of the alpha tint behind secondary and tertiary. */
-  tint: number
-  tintChroma: { scale: number; cap: number }
-  tintAlpha: [rest: number, hover: number, active: number]
-  /** Added to the foreground's lightness for the stronger `--text-1` step. */
-  textStrong: number
-  /** Alpha of `--text-3`, `--text-4`, and `--text-5` over `--text-2`, in percent. */
-  textAlpha: [number, number, number]
-  /** Shipped `[lightness, chroma]` of `--bg-2…5-{tone}`. Lightness stays pinned. */
-  bg: [number, number][]
-  /** Shipped `[lightness, chroma]` of `--border-1…5-{tone}`. */
-  border: [number, number][]
+  /** `--anta-fg-c-max`. */
+  fgChromaCap: number
+  /** Lightness and highest chroma of `--bg-5-{tone}`, the most tinted surface. */
+  tintedSurface: [number, number]
 }
-
-/** Seed chroma at which a surface gets its shipped chroma. A more muted seed
- *  scales it down; a more vivid one raises it by at most `SURFACE_HEADROOM`. */
-const SURFACE_REFERENCE_CHROMA = 0.17
-const SURFACE_HEADROOM = 1.25
 
 const LIMITS: Record<Scheme, Limits> = {
   light: {
     solid: [0.42, 0.85],
-    solidHover: -0.05,
-    solidActive: -0.1,
     solidChroma: { scale: 1, cap: 0.22 },
     flip: 0.72,
     onLight: 0.15,
     fg: [0.3, 0.46],
-    fgHover: -0.06,
-    fgQuaternaryHover: -0.08,
-    fgChroma: { scale: 1, cap: 0.17 },
-    tint: 0.54,
-    tintChroma: { scale: 1, cap: 0.17 },
-    tintAlpha: [0.1, 0.15, 0.2],
-    textStrong: -0.05,
-    textAlpha: [82, 66, 40],
-    bg: [[0.99, 0.004], [0.972, 0.011], [0.955, 0.02], [0.935, 0.03]],
-    border: [[0.67, 0.13], [0.8, 0.09], [0.86, 0.055], [0.9, 0.04], [0.935, 0.028]],
+    fgChromaCap: 0.17,
+    tintedSurface: [0.935, 0.0375],
   },
   dark: {
     solid: [0.38, 0.8],
-    solidHover: 0.04,
-    solidActive: 0.08,
     solidChroma: { scale: 0.9, cap: 0.2 },
     flip: 0.72,
     onLight: 0.15,
     fg: [0.86, 0.92],
-    fgHover: 0,
-    fgQuaternaryHover: 0.04,
-    fgChroma: { scale: 0.75, cap: 0.13 },
-    tint: 0.58,
-    tintChroma: { scale: 0.9, cap: 0.16 },
-    tintAlpha: [0.215, 0.29, 0.34],
-    textStrong: 0.04,
+    fgChromaCap: 0.13,
+    tintedSurface: [0.205, 0.0688],
+  },
+}
+
+/** The fixed lightness and chroma each role used through 0.3.39. */
+interface Legacy {
+  /** `[lightness, chroma]` of `--text-1` and `--text-2`. */
+  text: [[number, number], [number, number]]
+  /** Alpha of `--text-3`, `--text-4`, and `--text-5` over `--text-2`, in percent. */
+  textAlpha: [number, number, number]
+  /** `[lightness, chroma]` of `--bg-2…5-{tone}` and `--border-1…5-{tone}`. */
+  bg: [number, number][]
+  border: [number, number][]
+  button: {
+    /** Fill lightness at rest, hover, and active, then chroma. */
+    fill: [number, number, number, number]
+    /** Foreground lightness at rest, on hover, on quaternary hover, then chroma. */
+    fg: [number, number, number, number]
+    /** Tint lightness and chroma, then alpha at rest, hover, and active. */
+    tint: [number, number, number, number, number]
+  }
+  /** Checkbox and Radio fill lightness at rest, hover, and active. */
+  mark: [number, number, number]
+  markIcon: string
+  /** Switch track lightness at rest, hover, and active. */
+  track: [number, number, number]
+  thumb: string
+  /** `[lightness, chroma]` of the Tag tint and solid fill. */
+  tag: [[number, number], [number, number]]
+}
+
+const LEGACY: Record<Scheme, Legacy> = {
+  light: {
+    text: [[0.38, 0.11], [0.43, 0.15]],
+    textAlpha: [82, 66, 40],
+    bg: [[0.99, 0.004], [0.972, 0.011], [0.955, 0.02], [0.935, 0.03]],
+    border: [[0.67, 0.13], [0.8, 0.09], [0.86, 0.055], [0.9, 0.04], [0.935, 0.028]],
+    button: { fill: [0.51, 0.46, 0.41, 0.17], fg: [0.46, 0.4, 0.38, 0.17], tint: [0.54, 0.17, 0.1, 0.15, 0.2] },
+    mark: [0.5, 0.45, 0.4],
+    markIcon: '#f6f4f6',
+    track: [0.56, 0.48, 0.42],
+    thumb: 'var(--bg-1)',
+    tag: [[0.57, 0.16], [0.58, 0.175]],
+  },
+  dark: {
+    text: [[0.85, 0.1], [0.77, 0.11]],
     textAlpha: [80, 62, 40],
     bg: [[0.13, 0.02], [0.17, 0.035], [0.185, 0.05], [0.205, 0.055]],
     border: [[0.52, 0.15], [0.41, 0.12], [0.33, 0.09], [0.26, 0.06], [0.21, 0.045]],
+    button: { fill: [0.4, 0.44, 0.48, 0.16], fg: [0.86, 0.86, 0.9, 0.13], tint: [0.58, 0.16, 0.215, 0.29, 0.34] },
+    mark: [0.45, 0.5, 0.57],
+    markIcon: '#ece9ec',
+    track: [0.47, 0.53, 0.58],
+    thumb: '#ece9ec',
+    tag: [[0.63, 0.17], [0.46, 0.165]],
   },
 }
 
@@ -120,76 +139,68 @@ const PRESETS = [
 
 const PRIORITIES = ['primary', 'secondary', 'tertiary', 'quaternary'] as const
 
-const chromaOf = (k: { scale: number; cap: number }) => `min(calc(c * ${k.scale}), ${k.cap})`
-
 /**
- * The proposed derivation for one scheme. `scope` is a container selector. The
- * three shared colors and the brand role tokens are set on it; components
- * inside read them.
+ * The hue-only derivation for one scheme. `scope` is a container selector. The
+ * brand role tokens are set on it; the component rules restore each element's
+ * earlier formulas.
  */
-function proposalCss(scope: string, seed: string, k: Limits) {
-  const tint = (a: number) => `oklch(from ${seed} ${k.tint} ${chromaOf(k.tintChroma)} h / ${a})`
-  const surface = ([l, c]: [number, number]) =>
-    `oklch(from ${seed} ${l} min(calc(c * ${+(c / SURFACE_REFERENCE_CHROMA).toFixed(4)}), ${+(c * SURFACE_HEADROOM).toFixed(4)}) h)`
-  const solidHover = `oklch(from var(--_solid) calc(l + ${k.solidHover}) c h)`
-  const solidActive = `oklch(from var(--_solid) calc(l + ${k.solidActive}) c h)`
+function legacyCss(scope: string, seed: string, k: Legacy) {
+  const at = (l: number, c: number | string, alpha?: number) =>
+    `oklch(from ${seed} ${l} ${c} h${alpha == null ? '' : ` / ${alpha}`})`
+  const [fillRest, fillHover, fillActive, fillC] = k.button.fill
+  const [fgRest, fgHover, fgQuaternary, fgC] = k.button.fg
+  const [tintL, tintC, tintRest, tintHover, tintActive] = k.button.tint
   return `${scope} {
-  --_solid: oklch(from ${seed} clamp(${k.solid[0]}, l, ${k.solid[1]}) ${chromaOf(k.solidChroma)} h);
-  --_on-solid: oklch(from var(--_solid) calc(${k.onLight} + (1 - ${k.onLight}) * clamp(0, (${k.flip} - l) * 1000, 1)) 0 h);
-  --_fg: oklch(from ${seed} clamp(${k.fg[0]}, l, ${k.fg[1]}) ${chromaOf(k.fgChroma)} h);
+  --text-1-brand: ${at(...k.text[0])};
+  --text-2-brand: ${at(...k.text[1])};
+  --text-3-brand: color-mix(in oklch, var(--text-2-brand) ${k.textAlpha[0]}%, transparent);
+  --text-4-brand: color-mix(in oklch, var(--text-2-brand) ${k.textAlpha[1]}%, transparent);
+  --text-5-brand: color-mix(in oklch, var(--text-2-brand) ${k.textAlpha[2]}%, transparent);
 
-  --text-1-brand: oklch(from var(--_fg) calc(l + ${k.textStrong}) calc(c * 0.75) h);
-  --text-2-brand: var(--_fg);
-  --text-3-brand: color-mix(in oklch, var(--_fg) ${k.textAlpha[0]}%, transparent);
-  --text-4-brand: color-mix(in oklch, var(--_fg) ${k.textAlpha[1]}%, transparent);
-  --text-5-brand: color-mix(in oklch, var(--_fg) ${k.textAlpha[2]}%, transparent);
-
-${k.bg.map((v, i) => `  --bg-${i + 2}-brand: ${surface(v)};`).join('\n')}
-${k.border.map((v, i) => `  --border-${i + 1}-brand: ${surface(v)};`).join('\n')}
+${k.bg.map((v, i) => `  --bg-${i + 2}-brand: ${at(...v)};`).join('\n')}
+${k.border.map((v, i) => `  --border-${i + 1}-brand: ${at(...v)};`).join('\n')}
 }
 ${scope} a-button {
-  --button-bg-primary-rest: var(--_solid);
-  --button-bg-primary-hover: ${solidHover};
-  --button-bg-primary-active: ${solidActive};
-  --button-fg-primary-rest: var(--_on-solid);
+  --button-bg-primary-rest: ${at(fillRest, fillC)};
+  --button-bg-primary-hover: ${at(fillHover, fillC)};
+  --button-bg-primary-active: ${at(fillActive, fillC)};
+  --button-fg-primary-rest: #ffffff;
 
-  --button-fg-secondary-rest: var(--_fg);
-  --button-fg-secondary-hover: oklch(from var(--_fg) calc(l + ${k.fgHover}) c h);
-  --button-fg-tertiary-rest: var(--_fg);
-  --button-fg-tertiary-hover: oklch(from var(--_fg) calc(l + ${k.fgHover}) c h);
-  --button-fg-quaternary-rest: oklch(from var(--_fg) l c h / 0.85);
-  --button-fg-quaternary-hover: oklch(from var(--_fg) calc(l + ${k.fgQuaternaryHover}) c h);
+  --button-fg-secondary-rest: ${at(fgRest, fgC)};
+  --button-fg-secondary-hover: ${at(fgHover, fgC)};
+  --button-fg-quaternary-rest: ${at(fgRest, fgC, 0.85)};
+  --button-fg-quaternary-hover: ${at(fgQuaternary, fgC)};
 
-  --button-bg-secondary-rest: ${tint(k.tintAlpha[0])};
-  --button-bg-secondary-hover: ${tint(k.tintAlpha[1])};
-  --button-bg-secondary-active: ${tint(k.tintAlpha[2])};
-  --button-bg-tertiary-hover: ${tint(k.tintAlpha[0])};
-  --button-bg-tertiary-active: ${tint(k.tintAlpha[1])};
+  --button-bg-secondary-rest: ${at(tintL, tintC, tintRest)};
+  --button-bg-secondary-hover: ${at(tintL, tintC, tintHover)};
+  --button-bg-secondary-active: ${at(tintL, tintC, tintActive)};
+  --button-bg-tertiary-hover: ${at(tintL, tintC, tintRest)};
+  --button-bg-tertiary-active: ${at(tintL, tintC, tintHover)};
 }
 ${scope} a-checkbox {
-  --checkbox-bg-selected: var(--_solid);
-  --checkbox-bg-selected-hover: ${solidHover};
-  --checkbox-bg-selected-active: ${solidActive};
-  --checkbox-icon: var(--_on-solid);
+  --checkbox-bg-selected: ${at(k.mark[0], 'c')};
+  --checkbox-bg-selected-hover: ${at(k.mark[1], 'c')};
+  --checkbox-bg-selected-active: ${at(k.mark[2], 'c')};
+  --checkbox-icon: ${k.markIcon};
 }
 ${scope} a-radio {
-  --radio-bg-selected: var(--_solid);
-  --radio-bg-selected-hover: ${solidHover};
-  --radio-bg-selected-active: ${solidActive};
-  --radio-dot: var(--_on-solid);
+  --radio-bg-selected: ${at(k.mark[0], 'c')};
+  --radio-bg-selected-hover: ${at(k.mark[1], 'c')};
+  --radio-bg-selected-active: ${at(k.mark[2], 'c')};
+  --radio-dot: ${k.markIcon};
 }
 ${scope} a-switch {
-  --switch-track-on: var(--_solid);
-  --switch-track-on-hover: ${solidHover};
-  --switch-track-on-active: ${solidActive};
-  --switch-thumb: var(--_on-solid);
+  --switch-track-on: ${at(k.track[0], 'c')};
+  --switch-track-on-hover: ${at(k.track[1], 'c')};
+  --switch-track-on-active: ${at(k.track[2], 'c')};
+  --switch-thumb: ${k.thumb};
 }
 ${scope} a-tag {
-  --tag-bg-solid: var(--_solid);
-  --tag-tint: oklch(from ${seed} ${k.tint} ${chromaOf(k.tintChroma)} h);
+  --tag-tint: ${at(...k.tag[0])};
+  --tag-bg-solid: ${at(...k.tag[1])};
 }
 ${scope} a-tag[priority="primary"] {
-  --tag-text: var(--_on-solid);
+  --tag-text: #fff;
 }`
 }
 
@@ -352,10 +363,10 @@ function consequences(scheme: Scheme, k: Limits) {
   // Text is weakest at the window end nearest the surface, over the most
   // tinted background of its own tone.
   const nearSurface = scheme === 'light' ? k.fg[1] : k.fg[0]
-  const [bgL, bgC] = k.bg[k.bg.length - 1]
-  const text = weakest(k.fgChroma.cap, (c, h) => [
+  const [bgL, bgC] = k.tintedSurface
+  const text = weakest(k.fgChromaCap, (c, h) => [
     oklchToRgb(nearSurface, c, h),
-    oklchToRgb(bgL, bgC * SURFACE_HEADROOM, h),
+    oklchToRgb(bgL, bgC, h),
   ])
   return {
     shape,
@@ -450,7 +461,7 @@ function Panel({ scheme, seed, k, onChange }: PanelProps) {
   const solidL = clamp(k.solid[0], l, k.solid[1])
   const solidC = Math.min(c * k.solidChroma.scale, k.solidChroma.cap)
   const fgL = clamp(k.fg[0], l, k.fg[1])
-  const scope = `seedlab-${scheme}`
+  const scope = `seedlab-before-${scheme}`
 
   const ref = useRef<HTMLDivElement>(null)
   const [ratios, setRatios] = useState<Record<string, Measured | null>>({})
@@ -476,7 +487,18 @@ function Panel({ scheme, seed, k, onChange }: PanelProps) {
     to === from ? 'seed lightness kept' : to > from ? `raised to ${fmt(to)}` : `lowered to ${fmt(to)}`
 
   return (
-    <section ref={ref} className={`${scheme} ${styles.panel}`} style={{ '--anta-seed-brand': seed }}>
+    <section
+      ref={ref}
+      className={`${scheme} ${styles.panel}`}
+      style={{
+        '--anta-seed-brand': seed,
+        '--anta-solid-l-min': k.solid[0],
+        '--anta-solid-l-max': k.solid[1],
+        '--anta-on-solid-flip': k.flip,
+        '--anta-fg-l-min': k.fg[0],
+        '--anta-fg-l-max': k.fg[1],
+      }}
+    >
       <Title level={4}>{scheme === 'light' ? 'Light' : 'Dark'}</Title>
 
       <div className={styles.role}>
@@ -550,9 +572,9 @@ function Panel({ scheme, seed, k, onChange }: PanelProps) {
       </div>
 
       <div className={styles.columns}>
-        {(['today', 'proposal'] as const).map((mode) => (
-          <div key={mode} data-column={mode} className={`${styles.column} ${mode === 'proposal' ? scope : ''}`}>
-            <p className={styles.columnTitle}>{mode === 'today' ? 'Today' : 'Proposal'}</p>
+        {(['before', 'now'] as const).map((mode) => (
+          <div key={mode} data-column={mode} className={`${styles.column} ${mode === 'before' ? scope : ''}`}>
+            <p className={styles.columnTitle}>{mode === 'before' ? 'Before: hue only' : 'Now'}</p>
 
             <Group title="Button">
               <div className={styles.row}>
@@ -614,7 +636,7 @@ function Panel({ scheme, seed, k, onChange }: PanelProps) {
           </div>
         ))}
       </div>
-      <style dangerouslySetInnerHTML={{ __html: proposalCss(`.${scope}`, seed, k) }} />
+      <style dangerouslySetInnerHTML={{ __html: legacyCss(`.${scope}`, seed, LEGACY[scheme]) }} />
     </section>
   )
 }
@@ -633,13 +655,12 @@ export default function SeedLab() {
       <header className={styles.header}>
         <Title level={1}>Seed lab</Title>
         <Text priority="secondary">
-          Anta derives each tone from a seed color and mostly keeps only its hue. This proposal lets the seed’s
-          lightness and chroma through within limits. Solid fills follow the seed’s lightness inside a wide window,
-          and the label or mark on top turns dark on a light fill. Text follows it inside a narrow window, so it
-          stays readable on the surface behind it. Tinted backgrounds and borders keep a fixed lightness. Chroma
-          always comes from the seed, up to a cap. Both columns below set the brand seed; only Proposal applies the
-          new rules. The sliders are design choices; each reports the weakest contrast its setting allows for any
-          seed.
+          Anta derives each colored tone from a seed color. The seed’s lightness and chroma come through within
+          limits. Solid fills follow the seed’s lightness inside a wide window, and the label or mark on top turns
+          dark on a light fill. Text follows it inside a narrow window, so it stays readable on the surface behind
+          it. Tinted backgrounds and borders keep a fixed lightness. Chroma always comes from the seed, up to a cap.
+          Both columns below set the brand seed. Before shows the earlier derivation, which kept only the hue. The
+          sliders are design choices; each reports the weakest contrast its setting allows for any seed.
         </Text>
       </header>
 

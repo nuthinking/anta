@@ -195,6 +195,28 @@ components. These overrides can live in any application stylesheet:
 }
 ```
 
+A colored seed sets the hue of its tone. Its lightness and chroma carry through
+within limits that keep text readable:
+
+- Solid fills, such as a primary Button or a checked Checkbox, use the seed's
+  lightness between 0.42 and 0.85 in light mode and between 0.38 and 0.80 in
+  dark mode. A seed outside that range moves to the nearest end.
+- The label or mark on a fill is white below a fill lightness of 0.72 and dark
+  above it.
+- Toned text uses the seed's lightness between 0.30 and 0.46 in light mode and
+  between 0.86 and 0.92 in dark mode.
+- Tinted backgrounds and borders keep a fixed lightness.
+- Chroma follows the seed up to a cap, so a muted seed gives a muted tone.
+
+Lightness and chroma are OKLCH values. A white label on a fill lighter than
+about 0.58 falls below the WCAG 2 contrast ratio of 4.5:1. Choose a darker seed
+when you need that ratio.
+
+A custom `tone` color on Button, Checkbox, Radio, Switch, or Tag follows the
+same limits. Neutral tokens keep fixed lightness. The Antune and Antithesis
+themes set most tone colors directly, so seeds have little effect while one is
+loaded.
+
 For more control, customize the `--text-*`, `--bg-*`, and `--border-*` tokens
 separately for light and dark modes.
 

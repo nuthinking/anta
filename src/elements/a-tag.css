@@ -184,11 +184,13 @@
      and `--tag-edge` (the deep tertiary-border hue = `--text-2-{tone}`, which
      already flips for dark). Colored fill alpha is 10% (vs neutral's 7%) and
      the tertiary edge alpha is 20% (vs neutral's 25%); dark deepens them. */
-  /* Colored tones — saturate tint + solid fill; text + edge become the tone's
-     role tokens (they already track the seed). Alphas match the neutral base. */
+  /* Colored tones — the tint keeps a pinned lightness and takes the source's
+     chroma up to a cap. The solid fill follows the source's lightness and chroma
+     within the shared limits in tokens.css. Text + edge become the tone's role
+     tokens (they already track the seed). Alphas match the neutral base. */
   a-tag[tone]:not([tone=""], [tone="neutral"]) {
-    --tag-tint: light-dark(oklch(from var(--tag-tone-source) 0.57 0.16 h), oklch(from var(--tag-tone-source) 0.63 0.17 h));
-    --tag-bg-solid: light-dark(oklch(from var(--tag-tone-source) 0.58 0.175 h), oklch(from var(--tag-tone-source) 0.46 0.165 h));
+    --tag-tint: light-dark(oklch(from var(--tag-tone-source) 0.57 min(c, 0.16) h), oklch(from var(--tag-tone-source) 0.63 min(c, 0.17) h));
+    --tag-bg-solid: oklch(from var(--tag-tone-source) clamp(var(--anta-solid-l-min), l, var(--anta-solid-l-max)) min(calc(c * var(--anta-solid-c-scale)), var(--anta-solid-c-max)) h);
   }
   a-tag[tone="brand"]    { --tag-tone-source: var(--anta-seed-brand);    --tag-text: var(--text-3-brand);    --tag-edge: var(--text-2-brand); }
   a-tag[tone="info"]     { --tag-tone-source: var(--anta-seed-info);     --tag-text: var(--text-3-info);     --tag-edge: var(--text-2-info); }
@@ -199,7 +201,7 @@
   /* Custom tone — any non-named `tone` value. Tint + solid fill come from the
      shared colored constants + the base formula (the source pinned near Brand's
      L/C). A custom color has no role token, so text + tertiary edge derive from
-     the source at the --text-2 lightness/chroma (text at 80%, matching --text-3).
+     the source with the --text-2 formula (text at 80%, matching --text-3).
      The wrapper writes --tag-tone-source inline; the typed attr() fallback picks
      up raw `<a-tag tone="…">`. (oklch relative color: Chrome 119+, Safari 16.4+,
      Firefox 128+.) */
@@ -208,11 +210,8 @@
       [tone="success"], [tone="warning"], [tone="critical"]
     ) {
     --tag-tone-source: currentColor;
-    --tag-text: light-dark(
-      color-mix(in oklch, oklch(from var(--tag-tone-source) 0.43 0.15 h) 80%, transparent),
-      color-mix(in oklch, oklch(from var(--tag-tone-source) 0.77 0.11 h) 80%, transparent)
-    );
-    --tag-edge: light-dark(oklch(from var(--tag-tone-source) 0.43 0.15 h), oklch(from var(--tag-tone-source) 0.77 0.11 h));
+    --tag-edge: oklch(from var(--tag-tone-source) clamp(var(--anta-fg-l-min), l, var(--anta-fg-l-max)) min(calc(c * var(--anta-fg-c-scale)), var(--anta-fg-c-max)) h);
+    --tag-text: color-mix(in oklch, var(--tag-edge) 80%, transparent);
     @supports (color: attr(probe type(<color>), red)) {
       --tag-tone-source: attr(tone type(<color>), currentColor);
     }
@@ -233,17 +232,10 @@
       color-mix(in oklch, #fff 50%, transparent)
     );
   }
-  /* Custom-tone primary needs the white text re-stated at higher specificity
-     to out-rank the custom `--tag-text` (the `[tone]:not(…)` selector). */
-  a-tag[priority="primary"][tone]:not(
-      [tone="neutral"],
-      [tone="brand"],
-      [tone="info"],
-      [tone="success"],
-      [tone="warning"],
-      [tone="critical"]
-    ) {
-    --tag-text: #fff;
+  /* On a colored primary the text turns dark when the fill is light. The
+     higher specificity also out-ranks the custom-tone `--tag-text`. */
+  a-tag[priority="primary"][tone]:not([tone=""], [tone="neutral"]) {
+    --tag-text: oklch(from var(--tag-bg-solid) calc(0.15 + 0.85 * clamp(0, (var(--anta-on-solid-flip) - l) * 1000, 1)) 0 h);
   }
 
   /* Tertiary — no fill, just a deeper-hue outline (`--tag-edge` at the edge

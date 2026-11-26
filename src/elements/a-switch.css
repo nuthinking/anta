@@ -236,6 +236,15 @@
     line-height: var(--line-height-hint-medium);
   }
 
+  /* Colored tones — the checked track follows the source's lightness and chroma
+     within the shared limits in tokens.css. The thumb turns dark on a light
+     track. Neutral keeps the pinned base formulas. */
+  a-switch[tone]:not([tone=""], [tone="neutral"]) {
+    --switch-track-on: oklch(from var(--switch-tone-source) clamp(var(--anta-solid-l-min), l, var(--anta-solid-l-max)) min(calc(c * var(--anta-solid-c-scale)), var(--anta-solid-c-max)) h);
+    --switch-track-on-hover: oklch(from var(--switch-track-on) calc(l + var(--anta-solid-l-hover)) c h);
+    --switch-track-on-active: oklch(from var(--switch-track-on) calc(l + var(--anta-solid-l-active)) c h);
+    --switch-thumb: oklch(from var(--switch-track-on) calc(0.15 + 0.85 * clamp(0, (var(--anta-on-solid-flip) - l) * 1000, 1)) 0 h);
+  }
   a-switch[tone="brand"] {
     --switch-tone-source: var(--anta-seed-brand);
     --switch-off-tone-source: var(--anta-seed-brand);
