@@ -202,15 +202,17 @@ within limits that keep text readable:
   lightness between 0.42 and 0.85 in light mode and between 0.38 and 0.80 in
   dark mode. A seed outside that range moves to the nearest end.
 - The label or mark on a fill is white below a fill lightness of 0.72 and dark
-  above it.
+  above it. Anta picks that point with APCA, which rates the two labels equal
+  there.
 - Toned text uses the seed's lightness between 0.30 and 0.46 in light mode and
   between 0.86 and 0.92 in dark mode.
 - Tinted backgrounds and borders keep a fixed lightness.
 - Chroma follows the seed up to a cap, so a muted seed gives a muted tone.
 
-Lightness and chroma are OKLCH values. A white label on a fill lighter than
-about 0.58 falls below the WCAG 2 contrast ratio of 4.5:1. Choose a darker seed
-when you need that ratio.
+Lightness and chroma are OKLCH values. WCAG 2 rates a white label below 4.5:1
+on a fill lighter than about 0.58, so fills between 0.58 and 0.72 fail that
+ratio. The default warning fill is one of them, at 3.6:1. When you need the
+WCAG 2 ratio, set a seed darker than 0.58.
 
 A custom `tone` color on Button, Checkbox, Radio, Switch, or Tag follows the
 same limits. Neutral tokens keep fixed lightness. The Antune and Antithesis

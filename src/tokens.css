@@ -95,13 +95,18 @@
 
   /* Limits on how far a colored tone follows its seed's lightness and chroma.
      Components apply them to their own tone source, so a custom tone gets the
-     same treatment as a named one. They are internal tuning values.
+     same treatment as a named one. They are internal tuning values, not a
+     supported theming surface: their names and values can change in any
+     release.
      Solid fills (primary Button, checked Checkbox) take the seed's lightness
      inside `solid-l-min…max`. Hover and active add an offset. The label or mark
-     on a fill is white below `on-solid-flip` and dark above it; 0.72 is where
-     APCA rates the two equal. Text-like foregrounds take the seed's lightness
-     inside `fg-l-min…max`, which keeps them readable on a surface. Chroma is
-     the seed's own, scaled and capped. */
+     on a fill is white below `on-solid-flip` and dark above it. APCA decides
+     that point: 0.72 is where it rates the two equal. WCAG 2 puts it near
+     0.58, so a white label on a fill between the two is below 4.5:1; the
+     default warning fill is 3.6:1. Checkbox and Radio marks use 0.97 instead of
+     white to match the neutral mark. Text-like foregrounds take the seed's
+     lightness inside `fg-l-min…max`, which keeps them readable on a surface.
+     Chroma is the seed's own, scaled and capped. */
   --anta-solid-l-min: 0.42;
   --anta-solid-l-max: 0.85;
   --anta-solid-l-hover: -0.05;

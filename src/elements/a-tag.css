@@ -199,9 +199,9 @@
   a-tag[tone="critical"] { --tag-tone-source: var(--anta-seed-critical); --tag-text: var(--text-3-critical); --tag-edge: var(--text-2-critical); }
 
   /* Custom tone — any non-named `tone` value. Tint + solid fill come from the
-     shared colored constants + the base formula (the source pinned near Brand's
-     L/C). A custom color has no role token, so text + tertiary edge derive from
-     the source with the --text-2 formula (text at 80%, matching --text-3).
+     colored-tone rule above, applied to the custom source. A custom color has
+     no role token, so text + tertiary edge derive from the source with the
+     --text-2 formula (text at the --text-3 alpha: 82% light, 80% dark).
      The wrapper writes --tag-tone-source inline; the typed attr() fallback picks
      up raw `<a-tag tone="…">`. (oklch relative color: Chrome 119+, Safari 16.4+,
      Firefox 128+.) */
@@ -211,7 +211,7 @@
     ) {
     --tag-tone-source: currentColor;
     --tag-edge: oklch(from var(--tag-tone-source) clamp(var(--anta-fg-l-min), l, var(--anta-fg-l-max)) min(calc(c * var(--anta-fg-c-scale)), var(--anta-fg-c-max)) h);
-    --tag-text: color-mix(in oklch, var(--tag-edge) 80%, transparent);
+    --tag-text: light-dark(color-mix(in oklch, var(--tag-edge) 82%, transparent), color-mix(in oklch, var(--tag-edge) 80%, transparent));
     @supports (color: attr(probe type(<color>), red)) {
       --tag-tone-source: attr(tone type(<color>), currentColor);
     }
