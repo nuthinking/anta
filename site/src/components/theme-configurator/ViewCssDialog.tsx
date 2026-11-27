@@ -35,10 +35,10 @@ export default function ViewCssDialog({ open, onOpenChange, css, base, custom }:
 }) {
   const shipped = base !== 'default'
   const lines = css ? css.trimEnd().split('\n').length : 0
-  const name = base === 'antune' ? 'Antune' : 'Antithesis'
+  const name = base === 'antune' ? 'Antune' : base === 'antera' ? 'Antera' : 'Antithesis'
   // A shipped base exports its whole theme file, which replaces the shipped one.
   const summary = shipped
-    ? custom ? `Custom theme based on ${name} · ${lines} lines · use it instead of ${name}` : `The shipped ${name} theme · ${lines} lines`
+    ? custom ? `Custom theme based on ${name} · ${lines} lines · use it instead of ${name}` : `The ${name} theme · ${lines} lines`
     : custom ? `${lines} lines: only what differs from Anta's defaults, in light and dark mode.` : 'No changes yet: the theme matches Anta\'s defaults.'
   const file = css || '/* No changes yet: the theme matches Anta\'s defaults. */\n'
 

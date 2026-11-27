@@ -191,6 +191,10 @@
 .panel a-tabs > a-tab {
   --tab-padding-x: 6px;
 }
+/* Four theme names share the row by their own width, so the longest fits. */
+.themeTabs a-tabs > a-tab {
+  flex: 1 1 auto;
+}
 /* Matches Input's own field label, as the color pickers render it: medium
    size, weight 500, and the site theme's enabled label color. */
 .fieldLabel {

@@ -14,6 +14,7 @@ import styles from './ThemeConfigurator.module.css'
 export const BASES: { id: Base; label: string }[] = [
   { id: 'default', label: 'Default' },
   { id: 'antune', label: 'Antune' },
+  { id: 'antera', label: 'Antera' },
   { id: 'antithesis', label: 'Antithesis' },
 ]
 const STATUS = ['info', 'success', 'warning', 'critical'] as const
@@ -92,12 +93,14 @@ export default function RailTheme({ state, update, onBase, onWebsite, pickerRev 
   return (
     <div className={styles.panelBody}>
       <Section title="Theme">
-        <div className={styles.fullRow}>
+        <div className={`${styles.fullRow} ${styles.themeTabs}`}>
           <Tabs fill label="Start from" value={state.base}
             options={BASES.map((b) => ({ value: b.id, label: b.label }))}
             onStateChange={(_e: unknown, d: { next: string | null }) => d.next && d.next !== state.base && onBase(d.next as Base)} />
         </div>
-        {shipped && <p className={styles.hint}>{baseLabel} sets its colors by hand. Color changes turn and scale its hues and keep its lightness steps.</p>}
+        {state.base === 'antera'
+          ? <p className={styles.hint}>Antera is Antune rebuilt on Anta's seed model: a few limits and one grey scale, 71 lines.</p>
+          : shipped && <p className={styles.hint}>{baseLabel} sets its colors by hand. Color changes turn and scale its hues and keep its lightness steps.</p>}
       </Section>
 
       <Section title="Color">
@@ -132,7 +135,7 @@ export default function RailTheme({ state, update, onBase, onWebsite, pickerRev 
       <Section title="Type">
         <Field label="Font" inline>
           <Select aria-label="Font" value={state.type.font}
-            options={FONTS.map((f) => ({ value: f.id, label: f.label }))}
+            options={FONTS.map((f) => ({ value: f.id, label: f.id === 'default' && shipped ? `${baseLabel} default` : f.label }))}
             onValueChange={(v: FontId | null) => v && update((s) => ({ ...s, type: { ...s.type, font: v } }))} />
         </Field>
         <Seg label="Titles" options={['Sans', 'Serif']} value={state.type.titles === 'serif' ? 1 : 0}

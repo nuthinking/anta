@@ -242,6 +242,8 @@ export function tintedNeutral(brand: string, own: Record<Tone, string> = default
 export interface RenderOptions {
   /** Limit color rules to this selector, for side-by-side previews. Omit for a theme file. */
   scope?: string
+  /** Only limits and component lines (fine-tuning): no seeds, type or corners. */
+  tuningOnly?: boolean
 }
 
 const TEXT_SIZE = [0.92, 1, 1.08] as const
@@ -268,7 +270,7 @@ const withScope = (selectors: string[], scope?: string) => selectors.map((s) => 
  * file must load after `tokens.css`. Component rules go in `@layer anta.theme`.
  */
 export function renderTheme(t: Templates, state: ThemeState, options: RenderOptions = {}): string {
-  const { scope } = options
+  const { scope, tuningOnly } = options
   const rootSel = scope ?? ':root, .light'
   const darkSel = scope ? `${scope}.dark` : '.dark'
   const d0 = defaultState().seeds
@@ -277,8 +279,8 @@ export function renderTheme(t: Templates, state: ThemeState, options: RenderOpti
   const level = levelOf(state, ALL, 'color')
   // A seed changed by Intensity says which color it came from.
   const note = (k: Tone) => (level !== 1 && k !== 'neutral' ? ` /* ${state.seeds[k]} at ${INTENSITY_LABELS[level]} intensity */` : '')
-  const rootLines = (Object.keys(seeds) as Tone[]).filter((k) => seeds[k] !== d0[k]).map((k) => `--anta-seed-${k}: ${seeds[k]};${note(k)}`)
-  rootLines.push(...typeLines(t, state))
+  const rootLines = tuningOnly ? [] : (Object.keys(seeds) as Tone[]).filter((k) => seeds[k] !== d0[k]).map((k) => `--anta-seed-${k}: ${seeds[k]};${note(k)}`)
+  if (!tuningOnly) rootLines.push(...typeLines(t, state))
   const darkLines: string[] = []
   const layered: string[] = []
 
@@ -315,10 +317,10 @@ export function renderTheme(t: Templates, state: ThemeState, options: RenderOpti
       layered.push(block(withScope(rule.selectors, scope), lines, '  '))
     }
   }
-  if (state.type.titles === 'serif') {
+  if (!tuningOnly && state.type.titles === 'serif') {
     layered.push(block(withScope(['a-title:is([level="1"], [level="2"], [level="3"]):not([font])'], scope), ['font-family: var(--serif);'], '  '))
   }
-  if (!scope) layered.push(...cornerRules(state.corners).map((b) => b.replace(/^/gm, '  ')))
+  if (!scope && !tuningOnly) layered.push(...cornerRules(state.corners).map((b) => b.replace(/^/gm, '  ')))
 
   const tokens = [block(rootSel, rootLines), block(darkSel, darkLines)].filter(Boolean)
   const components = layered.filter(Boolean)
@@ -354,4 +356,28 @@ export function renderShipped(t: Templates, state: ThemeState, css: string, own:
 function parseOklch(value: string) {
   const [l, c, h] = value.replace(/^oklch\(|\)$/g, '').trim().split(/\s+/).map(Number)
   return { l, c, h }
+}
+
+/**
+ * A theme built on the seed model (Antera), with fine-tuning. `tuned` is the
+ * templates with the theme's own limits as the baseline, so choices scale the
+ * theme's values and an untouched theme adds nothing.
+ */
+export function renderTunable(t: Templates, tuned: Templates, state: ThemeState, css: string, own: Record<Tone, string>): string {
+  const out = renderShipped(t, state, css, own)
+  const tuning = renderTheme(tuned, state, { tuningOnly: true })
+  return tuning ? `${out.trimEnd()}\n\n/* Fine-tuning from the theme configurator. */\n${tuning.replace(LAYER_HEADER, '')}` : out
+}
+
+/** Templates whose limit baseline is the theme's own `--anta-*` values. */
+export function templatesWithLimits(t: Templates, css: string): Templates {
+  const limits = { light: { ...t.limits.light }, dark: { ...t.limits.dark } }
+  for (const [, selector, body] of css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    const mode: Mode | null = /\.dark\b/.test(selector) ? 'dark' : /:root\b/.test(selector) ? 'light' : null
+    if (!mode) continue
+    for (const [, name, value] of body.matchAll(/(--anta-[\w-]+)\s*:\s*(-?[\d.]+)\s*;/g)) {
+      if ((LIMIT_VARS as readonly string[]).includes(name)) limits[mode][name as LimitVar] = Number(value)
+    }
+  }
+  return { ...t, limits }
 }

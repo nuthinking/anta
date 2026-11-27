@@ -419,3 +419,23 @@ test('status colors follow the brand by default, relative to the base brand', as
   // Old links with status seeds open as custom.
   assert.equal(decodeState(encodeURIComponent(JSON.stringify({ seeds: { critical: '#ff0000' } }))).status, 'custom')
 })
+
+test('a seed-model theme is fine-tuned from its own limits', async () => {
+  const { renderTunable, templatesWithLimits } = await import('../site/src/components/theme-configurator/generate.ts')
+  const { stateFor } = await import('../site/src/components/theme-configurator/model.ts')
+  const css = await read('../site/src/components/theme-configurator/themes/antera.css')
+  const tuned = templatesWithLimits(t, css)
+  assert.equal(tuned.limits.light['--anta-solid-l-hover'], -0.06)
+  assert.equal(tuned.limits.dark['--anta-fg-l-min'], 0.78)
+  const own = defaultState().seeds
+  const state = stateFor('antera', own)
+  // Untouched, it is the theme file itself.
+  assert.equal(renderTunable(t, tuned, state, css, own), css)
+  // State change scales the theme's own hover shift (-0.06 × 1.5), after the theme's lines.
+  const strong = renderTunable(t, tuned, setChoice(tuned, state, ALL, 'state', 2), css, own)
+  assert.ok(strong.startsWith(css.trimEnd()))
+  assert.match(strong.slice(css.length), /--anta-solid-l-hover: -0\.09;/)
+  // A component's own choice becomes a scoped rule.
+  const boxes = renderTunable(t, tuned, setChoice(tuned, state, 'checkbox', 'state', 0), css, own)
+  assert.match(boxes.slice(css.length), /a-checkbox[^{]*\{\n    --anta-solid-l-hover: -0\.03;/)
+})

@@ -10,8 +10,8 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks'
 import { Button, Icon, Tabs } from '@antadesign/anta'
 import { decodeState, encodeState, stateFor, type Base, type Mode, type ThemeState } from './model.ts'
-import { renderShipped, renderTheme } from './generate.ts'
-import { templates as t, SHIPPED_THEMES, seedsFor } from './sources.ts'
+import { renderShipped, renderTheme, renderTunable } from './generate.ts'
+import { templates as t, SHIPPED_THEMES, TUNABLE, seedsFor, templatesFor } from './sources.ts'
 import RailTheme, { BASES } from './RailTheme.tsx'
 import RailFineTune from './RailFineTune.tsx'
 import ViewCssDialog from './ViewCssDialog.tsx'
@@ -103,12 +103,17 @@ export default function ThemeConfigurator() {
   // whole theme file, re-derived for the dials; unchanged, that is the file as shipped.
   const shipped = state.base === 'default' ? '' : SHIPPED_THEMES[state.base]
   const exported = useMemo(
-    () => (state.base === 'default' ? renderTheme(t, state) : renderShipped(t, state, shipped, seedsFor(state.base))),
+    () => (state.base === 'default'
+      ? renderTheme(t, state)
+      : state.base === 'antera'
+        ? renderTunable(t, templatesFor(state.base), state, shipped, seedsFor(state.base))
+        : renderShipped(t, state, shipped, seedsFor(state.base))),
     [state],
   )
   const custom = exported !== shipped
   // The preview loads the shipped theme itself; the custom CSS replaces it when edited.
-  const generated = custom ? exported : ''
+  // Antera is not a published file, so the preview always gets its CSS.
+  const generated = custom || state.base === 'antera' ? exported : ''
   /** Start over from a base's own theme: colors reset, type and shape stay. */
   const startFrom = (base: Base, keepTypeAndShape: boolean) => {
     setState((s) => ({ ...stateFor(base, seedsFor(base)), ...(keepTypeAndShape ? { type: s.type, corners: s.corners } : {}) }))
@@ -153,10 +158,10 @@ export default function ThemeConfigurator() {
         {/* One stack of buttons 8px apart. */}
         <div className={styles.footer}>
           <div className={styles.footerActions}>
-            {level === 'theme' && <Button tone="brand" priority="secondary" className={styles.footerButton} disabled={state.base !== 'default'} onClick={() => setLevel('fine')}>Fine-tune per component</Button>}
+            {level === 'theme' && <Button tone="brand" priority="secondary" className={styles.footerButton} disabled={!TUNABLE.includes(state.base)} onClick={() => setLevel('fine')}>Fine-tune per component</Button>}
             <Button tone="brand" priority="primary" className={styles.footerButton} onClick={() => setCssOpen(true)}>View CSS</Button>
             {/* Why Fine-tune is disabled on Antune and Antithesis. */}
-            {level === 'theme' && state.base !== 'default' && <p className={`${styles.hint} ${styles.footerNote}`}>This theme can't be fine-tuned.</p>}
+            {level === 'theme' && !TUNABLE.includes(state.base) && <p className={`${styles.hint} ${styles.footerNote}`}>This theme can't be fine-tuned.</p>}
             {custom && <Button priority="quaternary" size="small" className={styles.footerButton} onClick={() => startFrom(state.base, false)}>Reset theme</Button>}
           </div>
         </div>

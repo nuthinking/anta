@@ -12,7 +12,10 @@ import { DESIGN_WIDTH, layout } from './layout.ts'
 import styles from './ThemeScreens.module.css'
 
 type View = 'grid' | 'list'
-const THEMES: Record<string, string> = { none: '/themes/default.css', antune: '/themes/antune.css', antithesis: '/themes/antithesis.css' }
+// Antera has no published file: its CSS arrives with the message, over the empty default.
+const THEMES: Record<string, string> = { none: '/themes/default.css', antune: '/themes/antune.css', antera: '/themes/default.css', antithesis: '/themes/antithesis.css' }
+/** Themes that borrow another theme's site fonts. */
+const FONTS_OF: Record<string, string> = { antera: 'antune' }
 /** A screen's content area. `active` names the page it stands for. */
 function Shell({ children }: { active?: string; children: any }) {
   return <main className={styles.main}>{children}</main>
@@ -202,7 +205,7 @@ export default function ThemeScreens() {
         const link = document.querySelector<HTMLLinkElement>('#preview-theme')!
         if (link.getAttribute('href') !== href) link.href = href
         const fonts = document.querySelector<HTMLLinkElement>('#preview-fonts')!
-        const fontsHref = theme === 'none' ? THEMES.none : `/themes/fonts-${theme}.css`
+        const fontsHref = theme === 'none' ? THEMES.none : `/themes/fonts-${FONTS_OF[theme] ?? theme}.css`
         if (fonts.getAttribute('href') !== fontsHref) fonts.href = fontsHref
       }
       document.documentElement.classList.toggle('dark', dark === true)

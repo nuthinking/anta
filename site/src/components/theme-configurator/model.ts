@@ -12,7 +12,7 @@ export type ChoiceId = 'color' | 'state'
 export type NeutralMode = 'grey' | 'tinted' | 'custom'
 /** `brand`: status colors follow the brand (Anta's brand gives Anta's); `custom`: `seeds` holds them. */
 export type StatusMode = 'brand' | 'custom'
-export type Base = 'default' | 'antune' | 'antithesis'
+export type Base = 'default' | 'antune' | 'antera' | 'antithesis'
 
 export const MODES: readonly Mode[] = ['light', 'dark']
 export const LEVELS: readonly Level[] = [0, 1, 2]
@@ -130,7 +130,7 @@ export function decodeState(hash: string, seedsFor: SeedsFor = antaSeeds): Theme
     return state
   }
   if (!raw || typeof raw !== 'object') return state
-  if (raw.base === 'antune' || raw.base === 'antithesis' || raw.base === 'default') state.base = raw.base
+  if (raw.base === 'antune' || raw.base === 'antera' || raw.base === 'antithesis' || raw.base === 'default') state.base = raw.base
   // Seeds in the link are changes from the base's own seeds.
   state.seeds = { ...seedsFor(state.base) }
   for (const t of TONES) if (typeof raw.seeds?.[t] === 'string' && HEX.test(raw.seeds[t])) state.seeds[t] = raw.seeds[t].toLowerCase()

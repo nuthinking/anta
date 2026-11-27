@@ -12,7 +12,14 @@ import type { LimitVar } from './templates.ts'
 import { Seg, type Update } from './controls.tsx'
 import CodeEditor from './CodeEditor.tsx'
 import { readCss } from './css-lines.ts'
-import { templates as t } from './sources.ts'
+import { templates, templatesFor } from './sources.ts'
+import type { Templates } from './templates.ts'
+
+/**
+ * The templates of the base being tuned: Anta's, or a seed-model theme's with
+ * its own limits as the baseline. Set by RailFineTune before its children render.
+ */
+let t: Templates = templates
 import styles from './ThemeConfigurator.module.css'
 
 export const FAMILY_LABELS: Record<string, string> = {
@@ -209,6 +216,7 @@ export default function RailFineTune({ state, update, mode, open, onOpen, onBack
   onOpen: (family: string | null) => void
   onBack: () => void
 }) {
+  t = templatesFor(state.base)
   const families = [ALL, ...t.families.map((f) => f.id)]
   /** Edited: resetting the entry would change the theme. Default otherwise, even while inheriting All components' changes. */
   const summary = (id: string) => (hasOwnChanges(state, id) ? 'Edited' : 'Default')
