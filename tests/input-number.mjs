@@ -126,11 +126,12 @@ test('InputNumber focuses for typing on a click and keeps a typed draft', async 
   await drag(page, 'plain', [3, 23])
   assert.equal(await value(page, 'plain'), '42')
 
-  // "2." is not a number yet, so the application holds null. The controlled
-  // field keeps the draft so the next digit completes it.
+  // The browser's locale decides whether "2." already reads as 2 or is not a
+  // number yet, which reports null. Either way the controlled field keeps the
+  // draft so the next digit completes it.
   await page.locator('#controlled [part="input"]').click({ position: { x: 20, y: 8 } })
   await page.keyboard.type('2.')
-  assert.equal(await page.evaluate(() => window.controlled), null)
+  assert.ok([2, null].includes(await page.evaluate(() => window.controlled)))
   await page.keyboard.type('5')
   assert.equal(await value(page, 'controlled'), '2.5')
   assert.equal(await page.evaluate(() => window.controlled), 2.5)
