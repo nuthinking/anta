@@ -10,8 +10,16 @@ changes are not listed.
 - [InputNumber](/input-number/) is a number field built on the native number input. Drag across it to scrub the value, press its step buttons, or type. `value` and `onValueChange` use numbers, with `null` for an empty field.
 - [Input](/input-number/#web-component) accepts `scrub` and `steppers` attributes on `<a-input type="number">`, with `steppers`, `step`, `step-up`, and `step-down` parts.
 
-### Fixed
+### Changed
 
+- [Color seeds](/theming/#color-seeds) pass their lightness and chroma to colored tones within limits. Button, Checkbox, Radio, Switch, and Tag fills take the seed's lightness, and their label or mark turns dark on a light fill. Toned text, backgrounds, and borders take the seed's chroma. Default tones change as a result:
+  - Light-mode fills equal their seeds, so the warning Button fill moves from `#a64600` to `#c37416`.
+  - Dark-mode fills take the seed's lightness, about 0.50 to 0.63, instead of 0.40.
+  - Toned text is lighter in dark mode and slightly lighter in light mode.
+  - A custom `tone` color keeps its lightness and chroma within the same limits. A light color, such as `mediumaquamarine`, gets a dark label or mark.
+  - APCA decides whether a label is white or dark. The default warning Button and Tag have a white label at 3.6:1, below the WCAG 2 ratio of 4.5:1.
+
+### Fixed
 
 - [Slider](/slider/) keeps committed drag values within the current bounds when they change mid-drag.
 

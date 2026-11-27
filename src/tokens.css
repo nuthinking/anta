@@ -19,6 +19,8 @@
    (e.g. `--anta-seed-brand`) on any ancestor and its entire scale re-derives.
    The neutral seed is near-grey, so neutral tokens stay grey with the same
    formula. Light and dark share the seeds and differ only in the pinned L/C.
+   Colored tones also follow the seed's lightness and chroma within the
+   `--anta-solid-*` and `--anta-fg-*` limits declared with the seeds.
    The hand-tuned literals that shipped before this are available as the opt-in
    `@antadesign/anta/theme-antune.css`. L/C constants mirror the theming lab. */
 
@@ -91,6 +93,33 @@
   --anta-seed-warning: #c37416;
   --anta-seed-critical: #c9302c;
 
+  /* Limits on how far a colored tone follows its seed's lightness and chroma.
+     Components apply them to their own tone source, so a custom tone gets the
+     same treatment as a named one. They are internal tuning values, not a
+     supported theming surface: their names and values can change in any
+     release.
+     Solid fills (primary Button, checked Checkbox) take the seed's lightness
+     inside `solid-l-min…max`. Hover and active add an offset. The label or mark
+     on a fill is white below `on-solid-flip` and dark above it. APCA decides
+     that point: 0.72 is where it rates the two equal. WCAG 2 puts it near
+     0.58, so a white label on a fill between the two is below 4.5:1; the
+     default warning fill is 3.6:1. Checkbox and Radio marks use 0.97 instead of
+     white to match the neutral mark. Text-like foregrounds take the seed's
+     lightness inside `fg-l-min…max`, which keeps them readable on a surface.
+     Chroma is the seed's own, scaled and capped. */
+  --anta-solid-l-min: 0.42;
+  --anta-solid-l-max: 0.85;
+  --anta-solid-l-hover: -0.05;
+  --anta-solid-l-active: -0.1;
+  --anta-solid-c-scale: 1;
+  --anta-solid-c-max: 0.22;
+  --anta-on-solid-flip: 0.72;
+  --anta-fg-l-min: 0.3;
+  --anta-fg-l-max: 0.46;
+  --anta-fg-l-hover: -0.06;
+  --anta-fg-c-scale: 1;
+  --anta-fg-c-max: 0.17;
+
   /* Backgrounds — light. Numeric elevation scale: 1 = deepest / recessed,
      5 = most raised. No --bg-1-{tone}; bg-1 is neutral-only. */
   /* Backgrounds — light, neutral */
@@ -100,35 +129,38 @@
   --bg-4: oklch(from var(--anta-seed-neutral) 0.954 0.004 h);
   --bg-5: oklch(from var(--anta-seed-neutral) 0.935 0.006 h);
 
+  /* Colored backgrounds and borders keep a pinned lightness. Their chroma scales
+     with the seed's: a seed at chroma 0.17 gives the value these were tuned at,
+     a muted seed gives less, and a vivid one at most a quarter more. */
   /* Backgrounds — light, brand */
-  --bg-2-brand: oklch(from var(--anta-seed-brand) 0.99 0.004 h);
-  --bg-3-brand: oklch(from var(--anta-seed-brand) 0.972 0.011 h);
-  --bg-4-brand: oklch(from var(--anta-seed-brand) 0.955 0.02 h);
-  --bg-5-brand: oklch(from var(--anta-seed-brand) 0.935 0.03 h);
+  --bg-2-brand: oklch(from var(--anta-seed-brand) 0.99 min(calc(c * 0.0235), 0.005) h);
+  --bg-3-brand: oklch(from var(--anta-seed-brand) 0.972 min(calc(c * 0.0647), 0.0137) h);
+  --bg-4-brand: oklch(from var(--anta-seed-brand) 0.955 min(calc(c * 0.1176), 0.025) h);
+  --bg-5-brand: oklch(from var(--anta-seed-brand) 0.935 min(calc(c * 0.1765), 0.0375) h);
 
   /* Backgrounds — light, info */
-  --bg-2-info: oklch(from var(--anta-seed-info) 0.99 0.004 h);
-  --bg-3-info: oklch(from var(--anta-seed-info) 0.972 0.011 h);
-  --bg-4-info: oklch(from var(--anta-seed-info) 0.955 0.02 h);
-  --bg-5-info: oklch(from var(--anta-seed-info) 0.935 0.03 h);
+  --bg-2-info: oklch(from var(--anta-seed-info) 0.99 min(calc(c * 0.0235), 0.005) h);
+  --bg-3-info: oklch(from var(--anta-seed-info) 0.972 min(calc(c * 0.0647), 0.0137) h);
+  --bg-4-info: oklch(from var(--anta-seed-info) 0.955 min(calc(c * 0.1176), 0.025) h);
+  --bg-5-info: oklch(from var(--anta-seed-info) 0.935 min(calc(c * 0.1765), 0.0375) h);
 
   /* Backgrounds — light, success */
-  --bg-2-success: oklch(from var(--anta-seed-success) 0.99 0.004 h);
-  --bg-3-success: oklch(from var(--anta-seed-success) 0.972 0.011 h);
-  --bg-4-success: oklch(from var(--anta-seed-success) 0.955 0.02 h);
-  --bg-5-success: oklch(from var(--anta-seed-success) 0.935 0.03 h);
+  --bg-2-success: oklch(from var(--anta-seed-success) 0.99 min(calc(c * 0.0235), 0.005) h);
+  --bg-3-success: oklch(from var(--anta-seed-success) 0.972 min(calc(c * 0.0647), 0.0137) h);
+  --bg-4-success: oklch(from var(--anta-seed-success) 0.955 min(calc(c * 0.1176), 0.025) h);
+  --bg-5-success: oklch(from var(--anta-seed-success) 0.935 min(calc(c * 0.1765), 0.0375) h);
 
   /* Backgrounds — light, warning */
-  --bg-2-warning: oklch(from var(--anta-seed-warning) 0.99 0.004 h);
-  --bg-3-warning: oklch(from var(--anta-seed-warning) 0.972 0.011 h);
-  --bg-4-warning: oklch(from var(--anta-seed-warning) 0.955 0.02 h);
-  --bg-5-warning: oklch(from var(--anta-seed-warning) 0.935 0.03 h);
+  --bg-2-warning: oklch(from var(--anta-seed-warning) 0.99 min(calc(c * 0.0235), 0.005) h);
+  --bg-3-warning: oklch(from var(--anta-seed-warning) 0.972 min(calc(c * 0.0647), 0.0137) h);
+  --bg-4-warning: oklch(from var(--anta-seed-warning) 0.955 min(calc(c * 0.1176), 0.025) h);
+  --bg-5-warning: oklch(from var(--anta-seed-warning) 0.935 min(calc(c * 0.1765), 0.0375) h);
 
   /* Backgrounds — light, critical */
-  --bg-2-critical: oklch(from var(--anta-seed-critical) 0.99 0.004 h);
-  --bg-3-critical: oklch(from var(--anta-seed-critical) 0.972 0.011 h);
-  --bg-4-critical: oklch(from var(--anta-seed-critical) 0.955 0.02 h);
-  --bg-5-critical: oklch(from var(--anta-seed-critical) 0.935 0.03 h);
+  --bg-2-critical: oklch(from var(--anta-seed-critical) 0.99 min(calc(c * 0.0235), 0.005) h);
+  --bg-3-critical: oklch(from var(--anta-seed-critical) 0.972 min(calc(c * 0.0647), 0.0137) h);
+  --bg-4-critical: oklch(from var(--anta-seed-critical) 0.955 min(calc(c * 0.1176), 0.025) h);
+  --bg-5-critical: oklch(from var(--anta-seed-critical) 0.935 min(calc(c * 0.1765), 0.0375) h);
 
   /* Text — light, neutral */
   --text-1: oklch(from var(--anta-seed-neutral) 0.1 0.01 h);
@@ -138,36 +170,36 @@
   --text-5: color-mix(in oklch, var(--text-2) 40%, transparent);
 
   /* Text — light, brand */
-  --text-1-brand: oklch(from var(--anta-seed-brand) 0.38 0.11 h);
-  --text-2-brand: oklch(from var(--anta-seed-brand) 0.43 0.15 h);
+  --text-1-brand: oklch(from var(--text-2-brand) calc(l - 0.05) calc(c * 0.75) h);
+  --text-2-brand: oklch(from var(--anta-seed-brand) clamp(var(--anta-fg-l-min), l, var(--anta-fg-l-max)) min(calc(c * var(--anta-fg-c-scale)), var(--anta-fg-c-max)) h);
   --text-3-brand: color-mix(in oklch, var(--text-2-brand) 82%, transparent);
   --text-4-brand: color-mix(in oklch, var(--text-2-brand) 66%, transparent);
   --text-5-brand: color-mix(in oklch, var(--text-2-brand) 40%, transparent);
 
   /* Text — light, info */
-  --text-1-info: oklch(from var(--anta-seed-info) 0.38 0.11 h);
-  --text-2-info: oklch(from var(--anta-seed-info) 0.43 0.15 h);
+  --text-1-info: oklch(from var(--text-2-info) calc(l - 0.05) calc(c * 0.75) h);
+  --text-2-info: oklch(from var(--anta-seed-info) clamp(var(--anta-fg-l-min), l, var(--anta-fg-l-max)) min(calc(c * var(--anta-fg-c-scale)), var(--anta-fg-c-max)) h);
   --text-3-info: color-mix(in oklch, var(--text-2-info) 82%, transparent);
   --text-4-info: color-mix(in oklch, var(--text-2-info) 66%, transparent);
   --text-5-info: color-mix(in oklch, var(--text-2-info) 40%, transparent);
 
   /* Text — light, success */
-  --text-1-success: oklch(from var(--anta-seed-success) 0.38 0.11 h);
-  --text-2-success: oklch(from var(--anta-seed-success) 0.43 0.15 h);
+  --text-1-success: oklch(from var(--text-2-success) calc(l - 0.05) calc(c * 0.75) h);
+  --text-2-success: oklch(from var(--anta-seed-success) clamp(var(--anta-fg-l-min), l, var(--anta-fg-l-max)) min(calc(c * var(--anta-fg-c-scale)), var(--anta-fg-c-max)) h);
   --text-3-success: color-mix(in oklch, var(--text-2-success) 82%, transparent);
   --text-4-success: color-mix(in oklch, var(--text-2-success) 66%, transparent);
   --text-5-success: color-mix(in oklch, var(--text-2-success) 40%, transparent);
 
   /* Text — light, warning */
-  --text-1-warning: oklch(from var(--anta-seed-warning) 0.38 0.11 h);
-  --text-2-warning: oklch(from var(--anta-seed-warning) 0.43 0.15 h);
+  --text-1-warning: oklch(from var(--text-2-warning) calc(l - 0.05) calc(c * 0.75) h);
+  --text-2-warning: oklch(from var(--anta-seed-warning) clamp(var(--anta-fg-l-min), l, var(--anta-fg-l-max)) min(calc(c * var(--anta-fg-c-scale)), var(--anta-fg-c-max)) h);
   --text-3-warning: color-mix(in oklch, var(--text-2-warning) 82%, transparent);
   --text-4-warning: color-mix(in oklch, var(--text-2-warning) 66%, transparent);
   --text-5-warning: color-mix(in oklch, var(--text-2-warning) 40%, transparent);
 
   /* Text — light, critical */
-  --text-1-critical: oklch(from var(--anta-seed-critical) 0.38 0.11 h);
-  --text-2-critical: oklch(from var(--anta-seed-critical) 0.43 0.15 h);
+  --text-1-critical: oklch(from var(--text-2-critical) calc(l - 0.05) calc(c * 0.75) h);
+  --text-2-critical: oklch(from var(--anta-seed-critical) clamp(var(--anta-fg-l-min), l, var(--anta-fg-l-max)) min(calc(c * var(--anta-fg-c-scale)), var(--anta-fg-c-max)) h);
   --text-3-critical: color-mix(in oklch, var(--text-2-critical) 82%, transparent);
   --text-4-critical: color-mix(in oklch, var(--text-2-critical) 66%, transparent);
   --text-5-critical: color-mix(in oklch, var(--text-2-critical) 40%, transparent);
@@ -180,39 +212,39 @@
   --border-5: oklch(from var(--anta-seed-neutral) 0.935 0.008 h);
 
   /* Borders — light, brand */
-  --border-1-brand: oklch(from var(--anta-seed-brand) 0.67 0.13 h);
-  --border-2-brand: oklch(from var(--anta-seed-brand) 0.8 0.09 h);
-  --border-3-brand: oklch(from var(--anta-seed-brand) 0.86 0.055 h);
-  --border-4-brand: oklch(from var(--anta-seed-brand) 0.9 0.04 h);
-  --border-5-brand: oklch(from var(--anta-seed-brand) 0.935 0.028 h);
+  --border-1-brand: oklch(from var(--anta-seed-brand) 0.67 min(calc(c * 0.7647), 0.1625) h);
+  --border-2-brand: oklch(from var(--anta-seed-brand) 0.8 min(calc(c * 0.5294), 0.1125) h);
+  --border-3-brand: oklch(from var(--anta-seed-brand) 0.86 min(calc(c * 0.3235), 0.0688) h);
+  --border-4-brand: oklch(from var(--anta-seed-brand) 0.9 min(calc(c * 0.2353), 0.05) h);
+  --border-5-brand: oklch(from var(--anta-seed-brand) 0.935 min(calc(c * 0.1647), 0.035) h);
 
   /* Borders — light, info */
-  --border-1-info: oklch(from var(--anta-seed-info) 0.67 0.13 h);
-  --border-2-info: oklch(from var(--anta-seed-info) 0.8 0.09 h);
-  --border-3-info: oklch(from var(--anta-seed-info) 0.86 0.055 h);
-  --border-4-info: oklch(from var(--anta-seed-info) 0.9 0.04 h);
-  --border-5-info: oklch(from var(--anta-seed-info) 0.935 0.028 h);
+  --border-1-info: oklch(from var(--anta-seed-info) 0.67 min(calc(c * 0.7647), 0.1625) h);
+  --border-2-info: oklch(from var(--anta-seed-info) 0.8 min(calc(c * 0.5294), 0.1125) h);
+  --border-3-info: oklch(from var(--anta-seed-info) 0.86 min(calc(c * 0.3235), 0.0688) h);
+  --border-4-info: oklch(from var(--anta-seed-info) 0.9 min(calc(c * 0.2353), 0.05) h);
+  --border-5-info: oklch(from var(--anta-seed-info) 0.935 min(calc(c * 0.1647), 0.035) h);
 
   /* Borders — light, success */
-  --border-1-success: oklch(from var(--anta-seed-success) 0.67 0.13 h);
-  --border-2-success: oklch(from var(--anta-seed-success) 0.8 0.09 h);
-  --border-3-success: oklch(from var(--anta-seed-success) 0.86 0.055 h);
-  --border-4-success: oklch(from var(--anta-seed-success) 0.9 0.04 h);
-  --border-5-success: oklch(from var(--anta-seed-success) 0.935 0.028 h);
+  --border-1-success: oklch(from var(--anta-seed-success) 0.67 min(calc(c * 0.7647), 0.1625) h);
+  --border-2-success: oklch(from var(--anta-seed-success) 0.8 min(calc(c * 0.5294), 0.1125) h);
+  --border-3-success: oklch(from var(--anta-seed-success) 0.86 min(calc(c * 0.3235), 0.0688) h);
+  --border-4-success: oklch(from var(--anta-seed-success) 0.9 min(calc(c * 0.2353), 0.05) h);
+  --border-5-success: oklch(from var(--anta-seed-success) 0.935 min(calc(c * 0.1647), 0.035) h);
 
   /* Borders — light, warning */
-  --border-1-warning: oklch(from var(--anta-seed-warning) 0.67 0.13 h);
-  --border-2-warning: oklch(from var(--anta-seed-warning) 0.8 0.09 h);
-  --border-3-warning: oklch(from var(--anta-seed-warning) 0.86 0.055 h);
-  --border-4-warning: oklch(from var(--anta-seed-warning) 0.9 0.04 h);
-  --border-5-warning: oklch(from var(--anta-seed-warning) 0.935 0.028 h);
+  --border-1-warning: oklch(from var(--anta-seed-warning) 0.67 min(calc(c * 0.7647), 0.1625) h);
+  --border-2-warning: oklch(from var(--anta-seed-warning) 0.8 min(calc(c * 0.5294), 0.1125) h);
+  --border-3-warning: oklch(from var(--anta-seed-warning) 0.86 min(calc(c * 0.3235), 0.0688) h);
+  --border-4-warning: oklch(from var(--anta-seed-warning) 0.9 min(calc(c * 0.2353), 0.05) h);
+  --border-5-warning: oklch(from var(--anta-seed-warning) 0.935 min(calc(c * 0.1647), 0.035) h);
 
   /* Borders — light, critical */
-  --border-1-critical: oklch(from var(--anta-seed-critical) 0.67 0.13 h);
-  --border-2-critical: oklch(from var(--anta-seed-critical) 0.8 0.09 h);
-  --border-3-critical: oklch(from var(--anta-seed-critical) 0.86 0.055 h);
-  --border-4-critical: oklch(from var(--anta-seed-critical) 0.9 0.04 h);
-  --border-5-critical: oklch(from var(--anta-seed-critical) 0.935 0.028 h);
+  --border-1-critical: oklch(from var(--anta-seed-critical) 0.67 min(calc(c * 0.7647), 0.1625) h);
+  --border-2-critical: oklch(from var(--anta-seed-critical) 0.8 min(calc(c * 0.5294), 0.1125) h);
+  --border-3-critical: oklch(from var(--anta-seed-critical) 0.86 min(calc(c * 0.3235), 0.0688) h);
+  --border-4-critical: oklch(from var(--anta-seed-critical) 0.9 min(calc(c * 0.2353), 0.05) h);
+  --border-5-critical: oklch(from var(--anta-seed-critical) 0.935 min(calc(c * 0.1647), 0.035) h);
 
   /* Prose link colors — used by <a-text> for priorities 1 & 2 and by
      consumers wiring their own prose contexts. */
@@ -230,6 +262,20 @@
   color-scheme: dark;
   font-weight: 400;
 
+  /* Seed limits — dark. See the light block for what each one bounds. */
+  --anta-solid-l-min: 0.38;
+  --anta-solid-l-max: 0.8;
+  --anta-solid-l-hover: 0.04;
+  --anta-solid-l-active: 0.08;
+  --anta-solid-c-scale: 0.9;
+  --anta-solid-c-max: 0.2;
+  --anta-on-solid-flip: 0.72;
+  --anta-fg-l-min: 0.86;
+  --anta-fg-l-max: 0.92;
+  --anta-fg-l-hover: 0;
+  --anta-fg-c-scale: 0.75;
+  --anta-fg-c-max: 0.13;
+
   /* Backgrounds — dark, neutral */
   --bg-1: oklch(from var(--anta-seed-neutral) 0 0 h);
   --bg-2: oklch(from var(--anta-seed-neutral) 0.16 0.002 h);
@@ -238,34 +284,34 @@
   --bg-5: oklch(from var(--anta-seed-neutral) 0.2 0.009 h);
 
   /* Backgrounds — dark, brand */
-  --bg-2-brand: oklch(from var(--anta-seed-brand) 0.13 0.02 h);
-  --bg-3-brand: oklch(from var(--anta-seed-brand) 0.17 0.035 h);
-  --bg-4-brand: oklch(from var(--anta-seed-brand) 0.185 0.05 h);
-  --bg-5-brand: oklch(from var(--anta-seed-brand) 0.205 0.055 h);
+  --bg-2-brand: oklch(from var(--anta-seed-brand) 0.13 min(calc(c * 0.1176), 0.025) h);
+  --bg-3-brand: oklch(from var(--anta-seed-brand) 0.17 min(calc(c * 0.2059), 0.0438) h);
+  --bg-4-brand: oklch(from var(--anta-seed-brand) 0.185 min(calc(c * 0.2941), 0.0625) h);
+  --bg-5-brand: oklch(from var(--anta-seed-brand) 0.205 min(calc(c * 0.3235), 0.0688) h);
 
   /* Backgrounds — dark, info */
-  --bg-2-info: oklch(from var(--anta-seed-info) 0.13 0.02 h);
-  --bg-3-info: oklch(from var(--anta-seed-info) 0.17 0.035 h);
-  --bg-4-info: oklch(from var(--anta-seed-info) 0.185 0.05 h);
-  --bg-5-info: oklch(from var(--anta-seed-info) 0.205 0.055 h);
+  --bg-2-info: oklch(from var(--anta-seed-info) 0.13 min(calc(c * 0.1176), 0.025) h);
+  --bg-3-info: oklch(from var(--anta-seed-info) 0.17 min(calc(c * 0.2059), 0.0438) h);
+  --bg-4-info: oklch(from var(--anta-seed-info) 0.185 min(calc(c * 0.2941), 0.0625) h);
+  --bg-5-info: oklch(from var(--anta-seed-info) 0.205 min(calc(c * 0.3235), 0.0688) h);
 
   /* Backgrounds — dark, success */
-  --bg-2-success: oklch(from var(--anta-seed-success) 0.13 0.02 h);
-  --bg-3-success: oklch(from var(--anta-seed-success) 0.17 0.035 h);
-  --bg-4-success: oklch(from var(--anta-seed-success) 0.185 0.05 h);
-  --bg-5-success: oklch(from var(--anta-seed-success) 0.205 0.055 h);
+  --bg-2-success: oklch(from var(--anta-seed-success) 0.13 min(calc(c * 0.1176), 0.025) h);
+  --bg-3-success: oklch(from var(--anta-seed-success) 0.17 min(calc(c * 0.2059), 0.0438) h);
+  --bg-4-success: oklch(from var(--anta-seed-success) 0.185 min(calc(c * 0.2941), 0.0625) h);
+  --bg-5-success: oklch(from var(--anta-seed-success) 0.205 min(calc(c * 0.3235), 0.0688) h);
 
   /* Backgrounds — dark, warning */
-  --bg-2-warning: oklch(from var(--anta-seed-warning) 0.13 0.02 h);
-  --bg-3-warning: oklch(from var(--anta-seed-warning) 0.17 0.035 h);
-  --bg-4-warning: oklch(from var(--anta-seed-warning) 0.185 0.05 h);
-  --bg-5-warning: oklch(from var(--anta-seed-warning) 0.205 0.055 h);
+  --bg-2-warning: oklch(from var(--anta-seed-warning) 0.13 min(calc(c * 0.1176), 0.025) h);
+  --bg-3-warning: oklch(from var(--anta-seed-warning) 0.17 min(calc(c * 0.2059), 0.0438) h);
+  --bg-4-warning: oklch(from var(--anta-seed-warning) 0.185 min(calc(c * 0.2941), 0.0625) h);
+  --bg-5-warning: oklch(from var(--anta-seed-warning) 0.205 min(calc(c * 0.3235), 0.0688) h);
 
   /* Backgrounds — dark, critical */
-  --bg-2-critical: oklch(from var(--anta-seed-critical) 0.13 0.02 h);
-  --bg-3-critical: oklch(from var(--anta-seed-critical) 0.17 0.035 h);
-  --bg-4-critical: oklch(from var(--anta-seed-critical) 0.185 0.05 h);
-  --bg-5-critical: oklch(from var(--anta-seed-critical) 0.205 0.055 h);
+  --bg-2-critical: oklch(from var(--anta-seed-critical) 0.13 min(calc(c * 0.1176), 0.025) h);
+  --bg-3-critical: oklch(from var(--anta-seed-critical) 0.17 min(calc(c * 0.2059), 0.0438) h);
+  --bg-4-critical: oklch(from var(--anta-seed-critical) 0.185 min(calc(c * 0.2941), 0.0625) h);
+  --bg-5-critical: oklch(from var(--anta-seed-critical) 0.205 min(calc(c * 0.3235), 0.0688) h);
 
   /* Text — dark, neutral */
   --text-1: oklch(from var(--anta-seed-neutral) 0.94 0.008 h);
@@ -275,36 +321,36 @@
   --text-5: color-mix(in oklch, var(--text-2) 40%, transparent);
 
   /* Text — dark, brand */
-  --text-1-brand: oklch(from var(--anta-seed-brand) 0.85 0.1 h);
-  --text-2-brand: oklch(from var(--anta-seed-brand) 0.77 0.11 h);
+  --text-1-brand: oklch(from var(--text-2-brand) calc(l + 0.04) calc(c * 0.75) h);
+  --text-2-brand: oklch(from var(--anta-seed-brand) clamp(var(--anta-fg-l-min), l, var(--anta-fg-l-max)) min(calc(c * var(--anta-fg-c-scale)), var(--anta-fg-c-max)) h);
   --text-3-brand: color-mix(in oklch, var(--text-2-brand) 80%, transparent);
   --text-4-brand: color-mix(in oklch, var(--text-2-brand) 62%, transparent);
   --text-5-brand: color-mix(in oklch, var(--text-2-brand) 40%, transparent);
 
   /* Text — dark, info */
-  --text-1-info: oklch(from var(--anta-seed-info) 0.85 0.1 h);
-  --text-2-info: oklch(from var(--anta-seed-info) 0.77 0.11 h);
+  --text-1-info: oklch(from var(--text-2-info) calc(l + 0.04) calc(c * 0.75) h);
+  --text-2-info: oklch(from var(--anta-seed-info) clamp(var(--anta-fg-l-min), l, var(--anta-fg-l-max)) min(calc(c * var(--anta-fg-c-scale)), var(--anta-fg-c-max)) h);
   --text-3-info: color-mix(in oklch, var(--text-2-info) 80%, transparent);
   --text-4-info: color-mix(in oklch, var(--text-2-info) 62%, transparent);
   --text-5-info: color-mix(in oklch, var(--text-2-info) 40%, transparent);
 
   /* Text — dark, success */
-  --text-1-success: oklch(from var(--anta-seed-success) 0.85 0.1 h);
-  --text-2-success: oklch(from var(--anta-seed-success) 0.77 0.11 h);
+  --text-1-success: oklch(from var(--text-2-success) calc(l + 0.04) calc(c * 0.75) h);
+  --text-2-success: oklch(from var(--anta-seed-success) clamp(var(--anta-fg-l-min), l, var(--anta-fg-l-max)) min(calc(c * var(--anta-fg-c-scale)), var(--anta-fg-c-max)) h);
   --text-3-success: color-mix(in oklch, var(--text-2-success) 80%, transparent);
   --text-4-success: color-mix(in oklch, var(--text-2-success) 62%, transparent);
   --text-5-success: color-mix(in oklch, var(--text-2-success) 40%, transparent);
 
   /* Text — dark, warning */
-  --text-1-warning: oklch(from var(--anta-seed-warning) 0.85 0.1 h);
-  --text-2-warning: oklch(from var(--anta-seed-warning) 0.77 0.11 h);
+  --text-1-warning: oklch(from var(--text-2-warning) calc(l + 0.04) calc(c * 0.75) h);
+  --text-2-warning: oklch(from var(--anta-seed-warning) clamp(var(--anta-fg-l-min), l, var(--anta-fg-l-max)) min(calc(c * var(--anta-fg-c-scale)), var(--anta-fg-c-max)) h);
   --text-3-warning: color-mix(in oklch, var(--text-2-warning) 80%, transparent);
   --text-4-warning: color-mix(in oklch, var(--text-2-warning) 62%, transparent);
   --text-5-warning: color-mix(in oklch, var(--text-2-warning) 40%, transparent);
 
   /* Text — dark, critical */
-  --text-1-critical: oklch(from var(--anta-seed-critical) 0.85 0.1 h);
-  --text-2-critical: oklch(from var(--anta-seed-critical) 0.77 0.11 h);
+  --text-1-critical: oklch(from var(--text-2-critical) calc(l + 0.04) calc(c * 0.75) h);
+  --text-2-critical: oklch(from var(--anta-seed-critical) clamp(var(--anta-fg-l-min), l, var(--anta-fg-l-max)) min(calc(c * var(--anta-fg-c-scale)), var(--anta-fg-c-max)) h);
   --text-3-critical: color-mix(in oklch, var(--text-2-critical) 80%, transparent);
   --text-4-critical: color-mix(in oklch, var(--text-2-critical) 62%, transparent);
   --text-5-critical: color-mix(in oklch, var(--text-2-critical) 40%, transparent);
@@ -317,39 +363,39 @@
   --border-5: oklch(from var(--anta-seed-neutral) 0.21 0.008 h);
 
   /* Borders — dark, brand */
-  --border-1-brand: oklch(from var(--anta-seed-brand) 0.52 0.15 h);
-  --border-2-brand: oklch(from var(--anta-seed-brand) 0.41 0.12 h);
-  --border-3-brand: oklch(from var(--anta-seed-brand) 0.33 0.09 h);
-  --border-4-brand: oklch(from var(--anta-seed-brand) 0.26 0.06 h);
-  --border-5-brand: oklch(from var(--anta-seed-brand) 0.21 0.045 h);
+  --border-1-brand: oklch(from var(--anta-seed-brand) 0.52 min(calc(c * 0.8824), 0.1875) h);
+  --border-2-brand: oklch(from var(--anta-seed-brand) 0.41 min(calc(c * 0.7059), 0.15) h);
+  --border-3-brand: oklch(from var(--anta-seed-brand) 0.33 min(calc(c * 0.5294), 0.1125) h);
+  --border-4-brand: oklch(from var(--anta-seed-brand) 0.26 min(calc(c * 0.3529), 0.075) h);
+  --border-5-brand: oklch(from var(--anta-seed-brand) 0.21 min(calc(c * 0.2647), 0.0562) h);
 
   /* Borders — dark, info */
-  --border-1-info: oklch(from var(--anta-seed-info) 0.52 0.15 h);
-  --border-2-info: oklch(from var(--anta-seed-info) 0.41 0.12 h);
-  --border-3-info: oklch(from var(--anta-seed-info) 0.33 0.09 h);
-  --border-4-info: oklch(from var(--anta-seed-info) 0.26 0.06 h);
-  --border-5-info: oklch(from var(--anta-seed-info) 0.21 0.045 h);
+  --border-1-info: oklch(from var(--anta-seed-info) 0.52 min(calc(c * 0.8824), 0.1875) h);
+  --border-2-info: oklch(from var(--anta-seed-info) 0.41 min(calc(c * 0.7059), 0.15) h);
+  --border-3-info: oklch(from var(--anta-seed-info) 0.33 min(calc(c * 0.5294), 0.1125) h);
+  --border-4-info: oklch(from var(--anta-seed-info) 0.26 min(calc(c * 0.3529), 0.075) h);
+  --border-5-info: oklch(from var(--anta-seed-info) 0.21 min(calc(c * 0.2647), 0.0562) h);
 
   /* Borders — dark, success */
-  --border-1-success: oklch(from var(--anta-seed-success) 0.52 0.15 h);
-  --border-2-success: oklch(from var(--anta-seed-success) 0.41 0.12 h);
-  --border-3-success: oklch(from var(--anta-seed-success) 0.33 0.09 h);
-  --border-4-success: oklch(from var(--anta-seed-success) 0.26 0.06 h);
-  --border-5-success: oklch(from var(--anta-seed-success) 0.21 0.045 h);
+  --border-1-success: oklch(from var(--anta-seed-success) 0.52 min(calc(c * 0.8824), 0.1875) h);
+  --border-2-success: oklch(from var(--anta-seed-success) 0.41 min(calc(c * 0.7059), 0.15) h);
+  --border-3-success: oklch(from var(--anta-seed-success) 0.33 min(calc(c * 0.5294), 0.1125) h);
+  --border-4-success: oklch(from var(--anta-seed-success) 0.26 min(calc(c * 0.3529), 0.075) h);
+  --border-5-success: oklch(from var(--anta-seed-success) 0.21 min(calc(c * 0.2647), 0.0562) h);
 
   /* Borders — dark, warning */
-  --border-1-warning: oklch(from var(--anta-seed-warning) 0.52 0.15 h);
-  --border-2-warning: oklch(from var(--anta-seed-warning) 0.41 0.12 h);
-  --border-3-warning: oklch(from var(--anta-seed-warning) 0.33 0.09 h);
-  --border-4-warning: oklch(from var(--anta-seed-warning) 0.26 0.06 h);
-  --border-5-warning: oklch(from var(--anta-seed-warning) 0.21 0.045 h);
+  --border-1-warning: oklch(from var(--anta-seed-warning) 0.52 min(calc(c * 0.8824), 0.1875) h);
+  --border-2-warning: oklch(from var(--anta-seed-warning) 0.41 min(calc(c * 0.7059), 0.15) h);
+  --border-3-warning: oklch(from var(--anta-seed-warning) 0.33 min(calc(c * 0.5294), 0.1125) h);
+  --border-4-warning: oklch(from var(--anta-seed-warning) 0.26 min(calc(c * 0.3529), 0.075) h);
+  --border-5-warning: oklch(from var(--anta-seed-warning) 0.21 min(calc(c * 0.2647), 0.0562) h);
 
   /* Borders — dark, critical */
-  --border-1-critical: oklch(from var(--anta-seed-critical) 0.52 0.15 h);
-  --border-2-critical: oklch(from var(--anta-seed-critical) 0.41 0.12 h);
-  --border-3-critical: oklch(from var(--anta-seed-critical) 0.33 0.09 h);
-  --border-4-critical: oklch(from var(--anta-seed-critical) 0.26 0.06 h);
-  --border-5-critical: oklch(from var(--anta-seed-critical) 0.21 0.045 h);
+  --border-1-critical: oklch(from var(--anta-seed-critical) 0.52 min(calc(c * 0.8824), 0.1875) h);
+  --border-2-critical: oklch(from var(--anta-seed-critical) 0.41 min(calc(c * 0.7059), 0.15) h);
+  --border-3-critical: oklch(from var(--anta-seed-critical) 0.33 min(calc(c * 0.5294), 0.1125) h);
+  --border-4-critical: oklch(from var(--anta-seed-critical) 0.26 min(calc(c * 0.3529), 0.075) h);
+  --border-5-critical: oklch(from var(--anta-seed-critical) 0.21 min(calc(c * 0.2647), 0.0562) h);
 
   /* Prose link colors — dark mode */
   --link-color: #7baee9;

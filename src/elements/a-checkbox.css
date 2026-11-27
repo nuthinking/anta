@@ -225,9 +225,10 @@
   /* `tone` always sets the checked mark fill. `tone-scope="selected"` keeps the
      off state neutral; the default `all` scope also tints the empty box. */
   a-checkbox[tone]:not([tone=""], [tone="neutral"]) {
-    --checkbox-bg-selected: light-dark(oklch(from var(--checkbox-tone-source) 0.5 c h), oklch(from var(--checkbox-tone-source) 0.45 c h));
-    --checkbox-bg-selected-hover: light-dark(oklch(from var(--checkbox-tone-source) 0.45 c h), oklch(from var(--checkbox-tone-source) 0.5 c h));
-    --checkbox-bg-selected-active: light-dark(oklch(from var(--checkbox-tone-source) 0.4 c h), oklch(from var(--checkbox-tone-source) 0.57 c h));
+    --checkbox-bg-selected: oklch(from var(--checkbox-tone-source) clamp(var(--anta-solid-l-min), l, var(--anta-solid-l-max)) min(calc(c * var(--anta-solid-c-scale)), var(--anta-solid-c-max)) h);
+    --checkbox-bg-selected-hover: oklch(from var(--checkbox-bg-selected) calc(l + var(--anta-solid-l-hover)) c h);
+    --checkbox-bg-selected-active: oklch(from var(--checkbox-bg-selected) calc(l + var(--anta-solid-l-active)) c h);
+    --checkbox-icon: oklch(from var(--checkbox-bg-selected) calc(0.15 + 0.82 * clamp(0, (var(--anta-on-solid-flip) - l) * 1000, 1)) 0 h);
   }
   a-checkbox[tone="brand"] {
     --checkbox-tone-source: var(--anta-seed-brand);
@@ -260,7 +261,7 @@
      selected fill. */
   a-checkbox[tone]:not([tone=""], [tone="neutral"], [tone-scope="selected"]) {
     --checkbox-bg: light-dark(oklch(from var(--checkbox-off-tone-source) 0.99 calc(c * 0.03) h), oklch(from var(--checkbox-off-tone-source) 0.15 calc(c * 0.18) h));
-    --_checkbox-off-bg-selected: var(--checkbox-bg-selected);
+    --_checkbox-off-bg-selected: light-dark(oklch(from var(--checkbox-tone-source) 0.5 c h), oklch(from var(--checkbox-tone-source) 0.45 c h));
     --_checkbox-border-base: color-mix(in oklch, var(--_checkbox-off-bg-selected) 70%, var(--checkbox-border-neutral));
     --checkbox-border: light-dark(oklch(from var(--_checkbox-border-base) calc(l + 0.17) c h), var(--_checkbox-border-base));
     --checkbox-border-hover:  oklch(from var(--_checkbox-border-base) calc(l + 0.1) c h);
@@ -353,9 +354,10 @@
     }
   }
   input[data-anta][type="checkbox"][tone]:not([tone=""], [tone="neutral"]) {
-    --checkbox-bg-selected: light-dark(oklch(from var(--checkbox-tone-source) 0.5 c h), oklch(from var(--checkbox-tone-source) 0.45 c h));
-    --checkbox-bg-selected-hover: light-dark(oklch(from var(--checkbox-tone-source) 0.45 c h), oklch(from var(--checkbox-tone-source) 0.5 c h));
-    --checkbox-bg-selected-active: light-dark(oklch(from var(--checkbox-tone-source) 0.4 c h), oklch(from var(--checkbox-tone-source) 0.57 c h));
+    --checkbox-bg-selected: oklch(from var(--checkbox-tone-source) clamp(var(--anta-solid-l-min), l, var(--anta-solid-l-max)) min(calc(c * var(--anta-solid-c-scale)), var(--anta-solid-c-max)) h);
+    --checkbox-bg-selected-hover: oklch(from var(--checkbox-bg-selected) calc(l + var(--anta-solid-l-hover)) c h);
+    --checkbox-bg-selected-active: oklch(from var(--checkbox-bg-selected) calc(l + var(--anta-solid-l-active)) c h);
+    --checkbox-icon: oklch(from var(--checkbox-bg-selected) calc(0.15 + 0.82 * clamp(0, (var(--anta-on-solid-flip) - l) * 1000, 1)) 0 h);
   }
   input[data-anta][type="checkbox"][tone="brand"] {
     --checkbox-tone-source: var(--anta-seed-brand);
@@ -383,7 +385,7 @@
   }
   input[data-anta][type="checkbox"][tone]:not([tone=""], [tone="neutral"], [tone-scope="selected"]) {
     --checkbox-bg: light-dark(oklch(from var(--checkbox-off-tone-source) 0.99 calc(c * 0.03) h), oklch(from var(--checkbox-off-tone-source) 0.15 calc(c * 0.18) h));
-    --_checkbox-off-bg-selected: var(--checkbox-bg-selected);
+    --_checkbox-off-bg-selected: light-dark(oklch(from var(--checkbox-tone-source) 0.5 c h), oklch(from var(--checkbox-tone-source) 0.45 c h));
     --_checkbox-border-base: color-mix(in oklch, var(--_checkbox-off-bg-selected) 70%, var(--checkbox-border-neutral));
     --checkbox-border: light-dark(oklch(from var(--_checkbox-border-base) calc(l + 0.17) c h), var(--_checkbox-border-base));
     --checkbox-border-hover: oklch(from var(--_checkbox-border-base) calc(l + 0.1) c h);

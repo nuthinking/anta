@@ -95,28 +95,36 @@
     }
   }
 
-  /* Colored tones — saturate the fill, foreground, and tint formulas. */
+  /* Colored tones — the fill and labels follow the source's lightness and
+     chroma within the shared limits in tokens.css. The primary fill takes the
+     source's lightness inside the solid window, and its label turns dark on a
+     light fill. Text-like labels take it inside the foreground window, which
+     keeps them readable on the page. Tints keep a pinned lightness. */
   a-button[tone]:not([tone=""], [tone="neutral"]),
   a[role="button"][data-anta][tone]:not([tone=""], [tone="neutral"]),
   button[data-anta][tone]:not([tone=""], [tone="neutral"]),
   input[data-anta]:is([type="reset"], [type="submit"])[tone]:not([tone=""], [tone="neutral"]) {
-    --button-bg-primary-rest: light-dark(oklch(from var(--_src) 0.51 0.17 h), oklch(from var(--_src) 0.4 0.16 h));
-    --button-bg-primary-hover: light-dark(oklch(from var(--_src) 0.46 0.17 h), oklch(from var(--_src) 0.44 0.16 h));
-    --button-bg-primary-active: light-dark(oklch(from var(--_src) 0.41 0.17 h), oklch(from var(--_src) 0.48 0.16 h));
-    --button-fg-secondary-rest: light-dark(oklch(from var(--_src) 0.46 0.17 h), oklch(from var(--_src) 0.86 0.13 h));
-    --button-fg-secondary-hover: light-dark(oklch(from var(--_src) 0.4 0.17 h), oklch(from var(--_src) 0.86 0.13 h));
+    --_solid: oklch(from var(--_src) clamp(var(--anta-solid-l-min), l, var(--anta-solid-l-max)) min(calc(c * var(--anta-solid-c-scale)), var(--anta-solid-c-max)) h);
+    --_fg: oklch(from var(--_src) clamp(var(--anta-fg-l-min), l, var(--anta-fg-l-max)) min(calc(c * var(--anta-fg-c-scale)), var(--anta-fg-c-max)) h);
+    --button-bg-primary-rest: var(--_solid);
+    --button-bg-primary-hover: oklch(from var(--_solid) calc(l + var(--anta-solid-l-hover)) c h);
+    --button-bg-primary-active: oklch(from var(--_solid) calc(l + var(--anta-solid-l-active)) c h);
+    /* Read the final fill, so an overridden fill still gets a readable label. */
+    --button-fg-primary-rest: oklch(from var(--button-bg-primary-rest) calc(0.15 + 0.85 * clamp(0, (var(--anta-on-solid-flip) - l) * 1000, 1)) 0 h);
+    --button-fg-secondary-rest: var(--_fg);
+    --button-fg-secondary-hover: oklch(from var(--_fg) calc(l + var(--anta-fg-l-hover)) c h);
     --button-fg-tertiary-rest: var(--button-fg-secondary-rest);
     --button-fg-tertiary-hover: var(--button-fg-secondary-hover);
-    --button-bg-tertiary-hover: light-dark(oklch(from var(--_src) 0.54 0.17 h / 0.1), oklch(from var(--_src) 0.58 0.16 h / 0.215));
-    --button-bg-tertiary-active: light-dark(oklch(from var(--_src) 0.54 0.17 h / 0.15), oklch(from var(--_src) 0.58 0.16 h / 0.29));
-    --button-fg-quaternary-rest: light-dark(oklch(from var(--_src) 0.46 0.17 h / 0.85), oklch(from var(--_src) 0.86 0.13 h / 0.85));
-    --button-fg-quaternary-hover: light-dark(oklch(from var(--_src) 0.38 0.17 h), oklch(from var(--_src) 0.9 0.13 h));
-    --button-bg-secondary-rest: light-dark(oklch(from var(--_src) 0.54 0.17 h / 0.1), oklch(from var(--_src) 0.58 0.16 h / 0.215));
-    --button-bg-secondary-hover: light-dark(oklch(from var(--_src) 0.54 0.17 h / 0.15), oklch(from var(--_src) 0.58 0.16 h / 0.29));
-    --button-bg-secondary-active: light-dark(oklch(from var(--_src) 0.54 0.17 h / 0.2), oklch(from var(--_src) 0.58 0.16 h / 0.34));
+    --button-bg-tertiary-hover: light-dark(oklch(from var(--_src) 0.54 min(c, 0.17) h / 0.1), oklch(from var(--_src) 0.58 min(c, 0.16) h / 0.215));
+    --button-bg-tertiary-active: light-dark(oklch(from var(--_src) 0.54 min(c, 0.17) h / 0.15), oklch(from var(--_src) 0.58 min(c, 0.16) h / 0.29));
+    --button-fg-quaternary-rest: oklch(from var(--_fg) l c h / 0.85);
+    --button-fg-quaternary-hover: light-dark(oklch(from var(--_fg) calc(l - 0.08) c h), oklch(from var(--_fg) calc(l + 0.04) c h));
+    --button-bg-secondary-rest: light-dark(oklch(from var(--_src) 0.54 min(c, 0.17) h / 0.1), oklch(from var(--_src) 0.58 min(c, 0.16) h / 0.215));
+    --button-bg-secondary-hover: light-dark(oklch(from var(--_src) 0.54 min(c, 0.17) h / 0.15), oklch(from var(--_src) 0.58 min(c, 0.16) h / 0.29));
+    --button-bg-secondary-active: light-dark(oklch(from var(--_src) 0.54 min(c, 0.17) h / 0.2), oklch(from var(--_src) 0.58 min(c, 0.16) h / 0.34));
   }
 
-  /* Named tones point --_src at their seed; the constants above apply. */
+  /* Named tones point --_src at their seed; the formulas above apply. */
   a-button[tone="brand"],   a[role="button"][data-anta][tone="brand"],   button[data-anta][tone="brand"],   input[data-anta]:is([type="reset"], [type="submit"])[tone="brand"] { --_src: var(--anta-seed-brand); }
   a-button[tone="info"],    a[role="button"][data-anta][tone="info"],    button[data-anta][tone="info"],    input[data-anta]:is([type="reset"], [type="submit"])[tone="info"] { --_src: var(--anta-seed-info); }
   a-button[tone="success"], a[role="button"][data-anta][tone="success"], button[data-anta][tone="success"], input[data-anta]:is([type="reset"], [type="submit"])[tone="success"] { --_src: var(--anta-seed-success); }

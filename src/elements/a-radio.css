@@ -209,9 +209,10 @@
      neutral. A child's explicit scope overrides the group scope. */
   a-radio[tone]:not([tone=""], [tone="neutral"]),
   a-radio-group[tone]:not([tone=""], [tone="neutral"]) a-radio:not([tone]) {
-    --radio-bg-selected: light-dark(oklch(from var(--radio-tone-source) 0.5 c h), oklch(from var(--radio-tone-source) 0.45 c h));
-    --radio-bg-selected-hover: light-dark(oklch(from var(--radio-tone-source) 0.45 c h), oklch(from var(--radio-tone-source) 0.5 c h));
-    --radio-bg-selected-active: light-dark(oklch(from var(--radio-tone-source) 0.4 c h), oklch(from var(--radio-tone-source) 0.57 c h));
+    --radio-bg-selected: oklch(from var(--radio-tone-source) clamp(var(--anta-solid-l-min), l, var(--anta-solid-l-max)) min(calc(c * var(--anta-solid-c-scale)), var(--anta-solid-c-max)) h);
+    --radio-bg-selected-hover: oklch(from var(--radio-bg-selected) calc(l + var(--anta-solid-l-hover)) c h);
+    --radio-bg-selected-active: oklch(from var(--radio-bg-selected) calc(l + var(--anta-solid-l-active)) c h);
+    --radio-dot: oklch(from var(--radio-bg-selected) calc(0.15 + 0.82 * clamp(0, (var(--anta-on-solid-flip) - l) * 1000, 1)) 0 h);
   }
   /* Named normal tones → seed. */
   a-radio[tone="brand"], a-radio-group[tone="brand"] a-radio:not([tone]) {
@@ -248,7 +249,7 @@
   a-radio-group[tone]:not([tone=""], [tone="neutral"])[tone-scope="selected"]
     a-radio[tone-scope="all"]:not([tone]) {
     --radio-bg: light-dark(oklch(from var(--radio-off-tone-source) 0.99 calc(c * 0.03) h), oklch(from var(--radio-off-tone-source) 0.15 calc(c * 0.18) h));
-    --_radio-off-bg-selected: var(--radio-bg-selected);
+    --_radio-off-bg-selected: light-dark(oklch(from var(--radio-tone-source) 0.5 c h), oklch(from var(--radio-tone-source) 0.45 c h));
     --_radio-border-base: color-mix(in oklch, var(--_radio-off-bg-selected) 70%, var(--radio-border-neutral));
     --radio-border: light-dark(oklch(from var(--_radio-border-base) calc(l + 0.17) c h), var(--_radio-border-base));
     --radio-border-hover:  oklch(from var(--_radio-border-base) calc(l + 0.1) c h);
@@ -359,9 +360,10 @@
     --radio-dot-edge: 4px;
   }
   input[data-anta][type="radio"][tone]:not([tone=""], [tone="neutral"]) {
-    --radio-bg-selected: light-dark(oklch(from var(--radio-tone-source) 0.5 c h), oklch(from var(--radio-tone-source) 0.45 c h));
-    --radio-bg-selected-hover: light-dark(oklch(from var(--radio-tone-source) 0.45 c h), oklch(from var(--radio-tone-source) 0.5 c h));
-    --radio-bg-selected-active: light-dark(oklch(from var(--radio-tone-source) 0.4 c h), oklch(from var(--radio-tone-source) 0.57 c h));
+    --radio-bg-selected: oklch(from var(--radio-tone-source) clamp(var(--anta-solid-l-min), l, var(--anta-solid-l-max)) min(calc(c * var(--anta-solid-c-scale)), var(--anta-solid-c-max)) h);
+    --radio-bg-selected-hover: oklch(from var(--radio-bg-selected) calc(l + var(--anta-solid-l-hover)) c h);
+    --radio-bg-selected-active: oklch(from var(--radio-bg-selected) calc(l + var(--anta-solid-l-active)) c h);
+    --radio-dot: oklch(from var(--radio-bg-selected) calc(0.15 + 0.82 * clamp(0, (var(--anta-on-solid-flip) - l) * 1000, 1)) 0 h);
   }
   input[data-anta][type="radio"][tone="brand"] {
     --radio-tone-source: var(--anta-seed-brand);
@@ -389,7 +391,7 @@
   }
   input[data-anta][type="radio"][tone]:not([tone=""], [tone="neutral"], [tone-scope="selected"]) {
     --radio-bg: light-dark(oklch(from var(--radio-off-tone-source) 0.99 calc(c * 0.03) h), oklch(from var(--radio-off-tone-source) 0.15 calc(c * 0.18) h));
-    --_radio-off-bg-selected: var(--radio-bg-selected);
+    --_radio-off-bg-selected: light-dark(oklch(from var(--radio-tone-source) 0.5 c h), oklch(from var(--radio-tone-source) 0.45 c h));
     --_radio-border-base: color-mix(in oklch, var(--_radio-off-bg-selected) 70%, var(--radio-border-neutral));
     --radio-border: light-dark(oklch(from var(--_radio-border-base) calc(l + 0.17) c h), var(--_radio-border-base));
     --radio-border-hover: oklch(from var(--_radio-border-base) calc(l + 0.1) c h);

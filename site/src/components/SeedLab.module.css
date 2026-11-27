@@ -1,0 +1,270 @@
+.lab {
+  max-inline-size: 1280px;
+  margin-inline: auto;
+  padding: 32px 24px 64px;
+  display: grid;
+  gap: 24px;
+}
+
+.header {
+  display: grid;
+  gap: 8px;
+  max-inline-size: 72ch;
+}
+
+.seedRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+}
+
+.seedValue {
+  font-family: var(--monospace);
+  font-size: var(--font-size-small);
+  color: var(--text-3);
+}
+
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.preset {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 6px;
+  border: 1px solid var(--border-3);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-2);
+  font: inherit;
+  font-size: var(--font-size-small);
+  cursor: pointer;
+}
+
+.preset:hover {
+  background: var(--bg-3);
+}
+
+.preset[aria-pressed="true"] {
+  border-color: var(--border-1);
+  background: var(--bg-4);
+  color: var(--text-1);
+}
+
+.preset:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.preset i {
+  inline-size: 14px;
+  block-size: 14px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px color-mix(in oklch, currentColor 30%, transparent);
+}
+
+.panels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(440px, 1fr));
+  gap: 16px;
+}
+
+/* Each panel carries its own `.light` or `.dark` scope, so both schemes show
+   at once and the tokens below resolve per panel. */
+.panel {
+  display: grid;
+  align-content: start;
+  gap: 24px;
+  padding: 24px;
+  border: 1px solid var(--border-4);
+  border-radius: 12px;
+  background: var(--bg-1);
+  color: var(--text-1);
+}
+
+.role {
+  display: grid;
+  gap: 16px;
+}
+
+.knob {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border: 1px dashed var(--border-3);
+  border-radius: 8px;
+}
+
+.knobNote,
+.consequence {
+  font-size: var(--font-size-small);
+  color: var(--text-3);
+}
+
+.consequence {
+  font-family: var(--monospace);
+  font-size: var(--font-size-tiny);
+}
+
+.strip {
+  display: grid;
+  gap: 4px;
+}
+
+.stripHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+
+.stripTitle {
+  font-weight: 600;
+}
+
+.stripSummary,
+.legend,
+.ratios {
+  font-size: var(--font-size-small);
+  color: var(--text-3);
+}
+
+.axis {
+  display: grid;
+  gap: 2px;
+  /* Room for a marker label centered on either end of the track. */
+  padding-inline: 36px;
+}
+
+.track {
+  position: relative;
+  block-size: 28px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--text-1) 20%, transparent);
+  overflow: hidden;
+}
+
+.outside {
+  position: absolute;
+  inset-block: 0;
+  background:
+    repeating-linear-gradient(
+      135deg,
+      color-mix(in oklch, var(--bg-1) 85%, transparent) 0 4px,
+      color-mix(in oklch, var(--bg-1) 55%, transparent) 4px 8px
+    );
+}
+
+.window {
+  position: absolute;
+  inset-block: 0;
+  box-sizing: border-box;
+  border: 2px solid var(--text-1);
+  border-radius: 4px;
+}
+
+.flip {
+  position: absolute;
+  inset-block: 0;
+  /* White under `difference` inverts the track, so the line shows on any fill. */
+  border-inline-start: 2px dashed white;
+  mix-blend-mode: difference;
+}
+
+.marker {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  inline-size: max-content;
+  translate: -50% 0;
+  font-family: var(--monospace);
+  font-size: var(--font-size-tiny);
+  line-height: var(--line-height-tiny);
+  color: var(--text-2);
+  transition: left 150ms ease-out;
+}
+
+.marker i {
+  inline-size: 0;
+  block-size: 0;
+  border-inline: 5px solid transparent;
+  border-block-start: 6px solid var(--text-1);
+}
+
+.below i {
+  border-block-start: 0;
+  border-block-end: 6px solid var(--text-1);
+}
+
+.below span {
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 16px;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  padding-block-start: 20px;
+  border-block-start: 1px solid var(--border-4);
+}
+
+.column {
+  display: grid;
+  align-content: start;
+  gap: 20px;
+}
+
+.columnTitle {
+  margin: 0;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.group {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+}
+
+/* Banner and Progress fill the column; the other samples keep their own width. */
+.group > :is(a-banner, a-progress) {
+  justify-self: stretch;
+}
+
+.groupTitle {
+  margin: 0;
+  font-size: var(--font-size-tiny);
+  color: var(--text-3);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.ratios {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  font-family: var(--monospace);
+  font-size: var(--font-size-tiny);
+}
+
+.fails {
+  color: var(--text-1-critical);
+  font-weight: 600;
+}

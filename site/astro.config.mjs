@@ -88,7 +88,7 @@ export default defineConfig({
     },
     astroExpressiveCode(),
     mdx({ optimize: true }),
-    sitemap({ filter: (page) => !page.endsWith('/theme-preview/') }),
+    sitemap({ filter: (page) => !page.endsWith('/theme-preview/') && !page.includes('/internal/') }),
     // Postprocessing needs the sitemap files written by the preceding hook.
     siteBuild(),
   ],
