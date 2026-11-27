@@ -1,0 +1,352 @@
+/* The configurator follows the Playground widget: a controls panel and a
+   preview, each a bordered `--bg-pane` box, fused at one seam. Its width is
+   set from the preview layout (see layout.ts), and it centers in the space
+   `.outer` measures. Narrow spaces stack the two boxes; the panel is 300px
+   wide otherwise. */
+.outer {
+  width: 100%;
+}
+.configurator {
+  display: grid;
+  margin-inline: auto;
+  /* The panel is 300px; PANEL_WIDTH in ThemeConfigurator.tsx matches it. */
+  grid-template-columns: 300px minmax(0, 1fr);
+  margin-bottom: 32px;
+}
+.configurator *,
+.configurator *::before,
+.configurator *::after {
+  box-sizing: border-box;
+}
+
+.panel,
+.preview {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--border-4);
+  border-radius: 8px;
+  background: var(--bg-pane);
+  overflow: hidden;
+}
+/* One seam: the panel keeps its right border, the preview drops its left. */
+.panel {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.preview {
+  position: relative;
+  background: var(--bg-base);
+  border-left: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+/* Two floating control groups over the preview: layout, then color mode.
+   The preview page reserves room for them above the first row of screens.
+   The markup scopes the toolbar to the preview's color mode. */
+.toolbar {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+/* Anta ships no grid icon (table-2 reads as a table), so the configurator
+   adds Lucide's layout-grid in the same 24px, 2px-stroke encoding. */
+.toolbar :global(a-icon[shape="layout-grid"]) {
+  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='7' height='7' x='3' y='3' rx='1'/%3E%3Crect width='7' height='7' x='14' y='3' rx='1'/%3E%3Crect width='7' height='7' x='14' y='14' rx='1'/%3E%3Crect width='7' height='7' x='3' y='14' rx='1'/%3E%3C/svg%3E");
+}
+.iconLabel {
+  display: inline-flex;
+  align-items: center;
+}
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.panelBody {
+  min-width: 0;
+}
+/* The buttons follow the settings directly, not the bottom of the panel:
+   the panel is as tall as the preview, which can be much taller. Same 12px
+   padding as a section. */
+.footer {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+}
+/* Vertical buttons sit 8px apart: Fine-tune, View CSS, then Reset while
+   the theme has changes. */
+.footerActions {
+  display: grid;
+  gap: 8px;
+}
+.footerNote {
+  text-align: center;
+}
+.footerButton {
+  width: 100%;
+  justify-content: center;
+}
+.backRow {
+  padding: 8px 4px 0;
+}
+
+/* Sections divide like the Playground's example list. */
+.section {
+  border-bottom: 1px solid var(--border-4);
+}
+/* Group captions, uppercase like the site's navigation group headings and
+   Anta's menu group labels. The preview's screen captions share this spec. */
+.sectionHeader,
+.groupHeader {
+  margin: 0;
+  /* Headings inherit the panel's face; themes may set a serif on h1–h3. */
+  font-family: inherit;
+  font-variation-settings: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.sectionHeader {
+  padding: 10px 12px 2px;
+}
+.groupHeader {
+  padding-top: 4px;
+}
+.intro {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-4);
+}
+.section a-expander {
+  display: block;
+}
+/* Entry content, and the Color limits and CSS sections inside it, use the
+   panel's 12px padding like every section, instead of starting under the title. */
+.section a-expander > a-expander-details {
+  padding-inline: 0;
+}
+.summary {
+  /* The header ends 5px from the panel edge; this lines the summary up with
+     the 12px edge of the controls below. */
+  padding-inline-end: 7px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+/* Form rows: a label above its control, both full width. The 300px panel
+   leaves no room for a label column beside three-way choices. */
+.form {
+  /* One gap for the segmented choices and the inline-row grid, so an inline
+     control starts exactly where a three-option choice's second option does. */
+  --_segment-gap: 3px;
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  padding: 8px 12px 12px;
+  min-width: 0;
+}
+.form a-tabs {
+  --tabs-gap: var(--_segment-gap);
+}
+/* Rows inside a nested expander keep the form's 12px rhythm. */
+.nestedForm {
+  display: grid;
+  gap: 12px;
+  padding-top: 4px;
+}
+.field {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+/* Compact rows: the label column is one option of a three-option choice, so
+   inline controls line up with that choice's second option. The spacing is
+   the label's right padding, not a column gap. */
+.fieldInline {
+  /* One option of a three-option choice plus its gap. */
+  grid-template-columns: calc((100% + var(--_segment-gap)) / 3) minmax(0, 1fr);
+  align-items: center;
+  gap: 0;
+}
+.fieldInline > .fieldLabel {
+  padding-inline-end: 8px;
+}
+/* Three-way choices span the 300px panel. Tighter tab padding keeps their
+   labels whole at the default size, as the Playground sets its own tab
+   padding. */
+.panel a-tabs > a-tab {
+  --tab-padding-x: 6px;
+}
+/* Four theme names share the row by their own width, so the longest fits. */
+.themeTabs a-tabs > a-tab {
+  flex: 1 1 auto;
+}
+/* Matches Input's own field label, as the color pickers render it: medium
+   size, weight 500, and the site theme's enabled label color. */
+.fieldLabel {
+  font-size: var(--font-size-medium);
+  line-height: var(--line-height-medium);
+  font-weight: 500;
+  color: var(--text-1);
+}
+.fieldControl {
+  min-width: 0;
+}
+.fullRow {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+/* A link-style action: no padding, so it lines up with the text above. */
+.textAction {
+  justify-self: start;
+}
+.hint {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--text-4);
+}
+.edited {
+  color: var(--text-2-warning);
+}
+/* Controls of a preview-only base: inert and dimmed. */
+.locked {
+  opacity: 0.5;
+}
+/* From website (dev server only). */
+.fromWebsite {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.fromWebsiteRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.fromWebsiteRow > a-input {
+  flex: 1;
+  min-width: 0;
+}
+.fromWebsiteShot {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--border-4);
+  border-radius: 6px;
+}
+.websiteDialog {
+  --dialog-width: min(880px, 90vw);
+}
+/* Screenshot on the left, suggestions on the right; stacked when narrow. */
+.fromWebsiteResult {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+}
+@media (width < 720px) {
+  .fromWebsiteResult {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.fromWebsiteList {
+  display: grid;
+  gap: 8px;
+}
+.candidate {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.swatchSmall {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--text-1) 15%, transparent);
+}
+.statusRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.swatches {
+  display: flex;
+  gap: 4px;
+}
+.statusAction {
+  margin-inline-start: auto;
+}
+/* Status swatches match the 20px swatch inside the color pickers' fields. */
+.swatch {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--text-1) 15%, transparent);
+}
+
+.cssEditor {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.frame {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: var(--bg-base);
+  color-scheme: light;
+}
+:global(.dark) .frame {
+  color-scheme: dark;
+}
+
+/* Wide enough for most theme lines without wrapping; Dialog caps it at the viewport. */
+.cssDialog {
+  --dialog-width: min(960px, 90vw);
+}
+.dialogBody {
+  display: grid;
+  gap: 12px;
+}
+.dialogFooter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+.dialogFooter > :first-child {
+  flex: 1;
+}
+
+.stacked {
+  grid-template-columns: minmax(0, 1fr);
+  height: auto;
+}
+.stacked .panel {
+  border-radius: 8px 8px 0 0;
+}
+.stacked .preview {
+  border-left: 1px solid var(--border-4);
+  border-top: 0;
+  border-radius: 0 0 8px 8px;
+}

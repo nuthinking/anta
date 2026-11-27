@@ -1,0 +1,71 @@
+@layer base, anta, components, utilities;
+@layer anta.reset, anta.components, anta.theme;
+
+/* Antera: Antune rebuilt on Anta's seed model. Anta's formulas derive every
+   color from the seeds; this file only sets the limits those formulas read,
+   one hand-set grey text scale, and Antune's typography. An experiment that
+   lives in the docs site's theme configurator; it is not a published theme. */
+
+/* Limits, fitted to Antune's hand-tuned colors. */
+:root,
+.light {
+  --anta-solid-l-hover: -0.06;
+  --anta-solid-l-active: -0.11;
+  --anta-fg-l-max: 0.66;
+  --anta-fg-l-hover: -0.06;
+  --anta-fg-c-max: 0.18;
+}
+
+.dark {
+  --anta-solid-l-hover: 0;
+  --anta-solid-l-active: 0.07;
+  --anta-solid-c-max: 0.19;
+  --anta-fg-l-min: 0.78;
+  --anta-fg-l-hover: 0.07;
+  --anta-fg-c-scale: 0.82;
+  --anta-fg-c-max: 0.11;
+}
+
+/* Exceptions: Antune's secondary greys, which the formulas do not reach. */
+:root,
+.light {
+  --text-3: #635b65;
+  --text-4: #7a737c;
+  --text-5: #9f99a1;
+}
+
+.dark {
+  --text-3: #9f99a1;
+  --text-4: #7c737c;
+  --text-5: #635b65;
+}
+
+@layer anta.theme {
+  /* Typography, as in Antune. */
+  a-button,
+  a[role="button"][data-anta],
+  button[data-anta],
+  input[data-anta]:is([type="reset"], [type="submit"]),
+  a-tab {
+    font-stretch: 88%;
+    letter-spacing: 0.05ch;
+  }
+  a-tooltip {
+    --_tooltip-letter-spacing: 0.02ch;
+  }
+  a-progress-label {
+    letter-spacing: 0.03em;
+  }
+  a-menu-group-label {
+    letter-spacing: 0.06em;
+  }
+  a-input {
+    --_input-adornment-font-stretch: 88%;
+  }
+  a-tag {
+    letter-spacing: 0.02ch;
+  }
+  a-tag[allcaps] {
+    letter-spacing: 0.08ch;
+  }
+}

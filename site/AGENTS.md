@@ -280,6 +280,73 @@ The docs site is self-contained — no third-party JS fetch, offline-correct, an
 
 We only register workers for languages the playground actually uses. Adding JSON/HTML support means adding two more `?worker` imports and switch arms.
 
+## Theme configurator
+
+The "Theme configurator" disclosure on `/theming/` lives in
+`src/components/theme-configurator/`. It only generates CSS and never requires
+package changes.
+
+- **Templates come from the shipped CSS.** `templates.ts` reads `tokens.css`
+  and the colored-tone rules of Button, Tag, Checkbox, Radio, and Switch
+  (through Vite `?raw` in `sources.ts`, from disk in tests) and throws when a
+  rule changes shape. Do not rebuild it on `theming-lab-formulas.ts`; that file
+  only approximates the shipped formulas.
+- **The CSS is the source of truth.** Dials and choices are presets that write
+  lines; `match.ts` shows a choice as selected only while the lines still match
+  what it would write, comparing the numbers inside each value.
+- **Exports set limits as variables.** Lines keep their `var(--anta-solid-…)`
+  references, as Anta's CSS does. All components' limits go on `:root, .light`
+  and `.dark`; an entry's own limits go on its component's selectors, with
+  `.dark` copies. This keeps a theme readable: a State change is a few
+  variable lines, not every component's hover rules.
+- **Neutral and Status follow the brand by default.** Tinted neutral turns
+  the base's neutral with the brand hue; Status (`harmonizedStatus`) moves each
+  status color at most 8° in hue and 15% in chroma toward the brand, relative
+  to the base's own brand, so that brand reproduces the base exactly. The
+  Status swatches show the colors in use. Edit only opens the pickers; the
+  first status change overrides all four, and Reset (shown only then) returns
+  to following the brand.
+- **Choices only set variables.** Intensity (All components' Colorfulness)
+  scales the brand and status seeds' chroma, so every derived color follows,
+  and raises or lowers the chroma caps; each exported seed line notes the
+  picked color. An entry's own Colorfulness scales its scoped chroma variables.
+  State change scales the hover and pressed shifts. Fill strength and Tint strength were removed because they
+  rewrote component formulas line by line; a choice that needs that is out.
+  Surfaces and Text offer no choices, since their limits cannot be scoped;
+  they are edited as CSS. The package still
+  treats these variables as internal (`src/AGENTS.md`); the configurator uses
+  them by decision. Seeds and role tokens stay unlayered, like `tokens.css`;
+  component lines go in `@layer anta.theme`.
+- **The preview** is `/theme-preview/` (`ThemeScreens.tsx`) in an iframe, driven
+  by `anta-theme-preview` messages carrying the theme, mode, CSS, view, and
+  open family. User CSS is applied only inside that iframe.
+- **Style follows the Playground**: bordered `--bg-pane` boxes with uppercase
+  header strips, divided sections, and a label-column form built from Anta
+  components. Wireframes set structure only.
+- Antune and Antithesis set literal colors that seeds and limits do not reach.
+  `rederive.ts` rewrites those literals for new seeds: each takes its tone from
+  its token or selector name, keeps its lightness, and follows its seed's hue
+  and chroma change. The theme's own seeds reproduce the shipped file exactly
+  (tested). Their export is the whole theme file. Fine-tune per component
+  works on Default only.
+- **"From website" works only on the local dev server.** The browser cannot
+  read other sites (CORS), so `integrations/theme-from-url.mjs` adds a
+  dev-server-only `POST /api/theme-from-url/` that renders the site in headless
+  Chrome (`lib/theme-from-url/read-page.mjs`, through Playwright) and returns
+  computed-style readings and a screenshot. `suggest.ts` turns them into three
+  ranked brand colors and values for the other controls. `astro build` emits no
+  endpoint, so the deployed docs hide the link (`import.meta.env.DEV`). Serving
+  it from a deployment needs a server-side reader, such as a Cloudflare Worker
+  with Browser Rendering; only `readPage()` would change. The endpoint accepts
+  same-origin requests only, one at a time, and refuses private and loopback
+  addresses. `node site/scripts/brand-colors.mjs <url>` prints the three
+  brand candidates from the command line.
+- Run `node --test tests/theme-configurator.test.mjs` (Node 24) after changing
+  the engine or the shipped color formulas. `node site/scripts/theme-contact-sheet.mjs <out.html>`
+  renders every choice for ten brand colors to tune the presets.
+
+The previous lab moved to the unlinked `/internal/theming-lab/`.
+
 ## Adding a component docs page
 
 Page review status comes from the optional `author` frontmatter field. Leave it

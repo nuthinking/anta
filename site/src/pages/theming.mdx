@@ -4,8 +4,7 @@ title: Theming
 hideToc: true
 ---
 
-import ThemingLab from '../components/ThemingLab.tsx'
-import Themes from '../components/Themes.astro'
+import ThemeConfigurator from '../components/theme-configurator/ThemeConfigurator.tsx'
 import Disclosure from '../components/Disclosure.astro'
 
 # Theming
@@ -235,21 +234,17 @@ unlayered CSS overrides them without `!important`.
 
 </Disclosure>
 
-<Disclosure title="Themes" id="themes">
+<Disclosure title="Theme configurator" id="theme-configurator">
 
-Compare the same components across themes. Select a tab to preview the theme and
-read its stylesheet.
+Start from Default, Antune, or Antithesis, then set a brand color and a few
+dials; four app screens update as you go. From Default, "Fine-tune per
+component" adjusts each component, and the shared surfaces and text, down to
+their CSS. View CSS gives you a theme file to load after Anta's styles. A theme
+built on Antune or Antithesis is the complete theme file, so load it instead of
+the shipped one.
 
-<Themes />
-
-</Disclosure>
-
-<Disclosure title="Theming lab" id="theming-lab">
-
-The lab below shows the derivation live. For each toned component, the shipped Default sits next to a Custom preview driven by the seed picker, with the formula constants editable and the resolved CSS shown.
-
-<div data-no-search>
-  <ThemingLab client:load />
+<div className="full-bleed" data-no-search>
+  <ThemeConfigurator client:load />
 </div>
 
 </Disclosure>

@@ -8,6 +8,7 @@ import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import astroExpressiveCode from 'astro-expressive-code';
 import siteBuild from './integrations/site-build.mjs';
+import themeFromUrl from './integrations/theme-from-url.mjs';
 import { unwrapImages, unwrapJsxParagraphs, headingLinks, wrapTables } from './lib/satteri-plugins.mjs';
 
 export default defineConfig({
@@ -68,6 +69,8 @@ export default defineConfig({
   // parsed bundle makes dev and prod render identically.
   build: { inlineStylesheets: 'never' },
   integrations: [
+    // Dev server only: the theme configurator's "From website" endpoint.
+    themeFromUrl(),
     // compat:true aliases react / react-dom → preact/compat so Anta's JSX
     // wrappers (typed against React) use the same Preact runtime as islands.
     preact({ compat: true }),

@@ -209,6 +209,9 @@ function Pad({
   )
 }
 
+/** Field swatch per field size: the field's height less a 4px inset on each side. */
+const SWATCH = { small: '16px', medium: '20px', large: '24px' } as const
+
 /** Inline custom properties, which the style type does not list. */
 const vars = (v: Record<string, string>): any => v
 
@@ -218,6 +221,8 @@ export default function ColorPicker({
   label = 'Color',
   defaultMode = 'hex',
   alpha = false,
+  size = 'small',
+  layout = 'inline',
 }: {
   value?: string
   /** Receives six-digit hex, or eight-digit hex for a translucent color. */
@@ -227,6 +232,11 @@ export default function ColorPicker({
   defaultMode?: ColorPickerMode
   /** Adds an opacity slider to the HEX tab. */
   alpha?: boolean
+  /** Size of the trigger field. The popover keeps its own sizes. */
+  size?: 'small' | 'medium' | 'large'
+  /** `inline` puts a monospace label left of a 230px field; `stacked` puts the label above a full-width field;
+   *  `bare` is a full-width field whose label is only its accessible name, for forms that place labels themselves. */
+  layout?: 'inline' | 'stacked' | 'bare'
 }) {
   const [[l, c, h], setLch] = useState<Triple>(() => {
     try {
@@ -388,23 +398,28 @@ export default function ColorPicker({
   ) : null
 
   return (
-    <div style={{ display: 'inline-block' }}>
-      {/* Re-template the host grid (the element supports this) to put the field's
-          own label to the left of the box, and monospace the label + value. */}
+    <div style={{ display: layout === 'inline' ? 'inline-block' : 'block' }}>
+      {/* Inline: re-template the host grid (the element supports this) to put the
+          field's own label to the left of the box, and monospace the label + value.
+          Stacked keeps Input's default label above and fills the width. */}
       <style>{`
         .acp-trigger { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 8px; width: 230px; }
         .acp-trigger::part(label) { margin: 0; }
         .acp-trigger::part(label), .acp-trigger::part(input) { font-family: var(--monospace); letter-spacing: 0; }
+        .acp-trigger-stacked { width: 100%; }
       `}</style>
       <Input
-        className="acp-trigger"
-        size="small"
-        label={label}
+        className={layout === 'inline' ? 'acp-trigger' : 'acp-trigger-stacked'}
+        size={size}
+        label={layout === 'bare' ? undefined : label}
+        aria-label={layout === 'bare' ? label : undefined}
         value={hex}
         readOnly
         style={{ cursor: 'pointer' }}
         leading={
-          <span className={styles.swatch} style={vars({ width: '13px', height: '13px', borderRadius: '2px', '--acp-color': hex })} />
+          // The swatch sits 4px inside the field on every side: the leading
+          // slot starts 7px in, so a -3px margin pulls it to 4px.
+          <span className={styles.swatch} style={vars({ width: SWATCH[size], height: SWATCH[size], marginInlineStart: '-3px', borderRadius: '3px', '--acp-color': hex })} />
         }
       />
       {/* Anchor the picker to the field's box. */}
