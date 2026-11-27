@@ -113,6 +113,56 @@
   a-input:not(:state(multiline)):not(:state(button))::part(input)::-ms-clear,
   a-input:not(:state(multiline)):not(:state(button))::part(input)::-ms-reveal { display: none; }
 
+  /* Number fields. An unfocused scrub field changes its value on a horizontal
+     drag; a focused one edits text. */
+  a-input:state(scrub):not(:disabled):not([readonly]):not(:focus)::part(input),
+  a-input:state(scrubbing)::part(input) { cursor: ew-resize; }
+  a-input::part(steppers) {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    align-self: stretch;
+    inline-size: 16px;
+    margin: 1px;
+    color: var(--input-adornment);
+  }
+  /* Keep the buttons clear of a rounded end. */
+  a-input[round]::part(steppers) { margin-inline-end: 6px; }
+  a-input::part(step) {
+    display: grid;
+    flex: 1 1 0;
+    place-items: center;
+    min-block-size: 0;
+    border: 0;
+    border-radius: 3px;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+  }
+  /* The chevron: two borders of a rotated square. */
+  a-input::part(step)::before {
+    content: "";
+    box-sizing: border-box;
+    inline-size: 5px;
+    block-size: 5px;
+    border-block-start: 1.5px solid;
+    border-inline-start: 1.5px solid;
+  }
+  a-input::part(step-up)::before { transform: translateY(1.5px) rotate(45deg); }
+  a-input::part(step-down)::before { transform: translateY(-1.5px) rotate(225deg); }
+  @media (hover: hover) and (pointer: fine) {
+    a-input:not(:disabled):not([readonly])::part(step):hover {
+      background: color-mix(in oklch, currentColor 12%, transparent);
+      color: var(--input-text);
+    }
+  }
+  a-input:not(:disabled):not([readonly])::part(step):active { background: color-mix(in oklch, currentColor 20%, transparent); }
+  a-input:disabled::part(steppers),
+  a-input[readonly]::part(steppers) { opacity: 0.5; pointer-events: none; }
+  @media (forced-colors: active) { a-input::part(step) { color: ButtonText; } }
+
   a-input::part(leading),
   a-input::part(trailing) {
     display: none;

@@ -9,6 +9,7 @@ export const componentSuites = {
   panel: { tests: ['tests/panel-csp.mjs'], slow: ['tests/panel-package.mjs'] },
   dialog: { tests: ['tests/dialog-csp.mjs'], slow: ['tests/dialog-package.mjs'] },
   menu: { tests: ['tests/menu-csp.mjs'], slow: ['tests/menu-package.mjs'] },
+  'input-number': { tests: ['tests/input-number.mjs'] },
   'input-time': { tests: ['tests/input-time-csp.mjs'], slow: ['tests/input-time-package.mjs'] },
   copy: { tests: ['tests/copy-csp.mjs'], slow: ['tests/copy-package.mjs'] },
   toaster: { tests: ['tests/toaster-csp.mjs'], slow: ['tests/toaster-package.mjs'] },

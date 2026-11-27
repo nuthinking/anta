@@ -5,6 +5,7 @@ import { componentSuites } from './component-suites.mjs'
 
 const suiteNames = {
   'input-autocomplete': 'InputAutocomplete',
+  'input-number': 'InputNumber',
   'input-time': 'InputTime',
   selection: 'Selection state',
   'value-ownership': 'Controlled and uncontrolled values',

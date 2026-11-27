@@ -39,6 +39,7 @@ Anta is designed for a clean DOM. Prefer the props and attributes exposed by eac
 - [Input](./components/input.md)
 - [InputAutocomplete](./components/input-autocomplete.md)
 - [InputDate](./components/input-date.md)
+- [InputNumber](./components/input-number.md)
 - [InputTime](./components/input-time.md)
 - [Select](./components/select.md)
 - [SelectFaceted](./components/select-faceted.md)

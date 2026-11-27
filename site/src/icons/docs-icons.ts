@@ -22,6 +22,7 @@ export const ICON_SHAPES = [
   'footprints',
   'github-logo',
   'grid-lines-offset',
+  'hash',
   'inspection-panel',
   'layout-freeform',
   'loader-docs',
@@ -62,6 +63,7 @@ declare module '@antadesign/anta' {
     'footprints': true
     'github-logo': true
     'grid-lines-offset': true
+    'hash': true
     'inspection-panel': true
     'layout-freeform': true
     'loader-docs': true

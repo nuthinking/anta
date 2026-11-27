@@ -506,6 +506,9 @@ For numeric text that needs to keep partial entries or trailing zeros, use
 and convert it to a number when needed. `inputMode` suggests a keyboard without
 restricting what can be entered.
 
+For a number someone adjusts by dragging or stepping, use
+[InputNumber](/input-number/).
+
 Use `required`, length limits, a `pattern`, or numeric limits to check values
 before submission. Available checks depend on the field type. A `pattern`
 checks the finished value without blocking typing.
@@ -747,6 +750,10 @@ release control while retaining the current text.
 Slots accept content; shadow parts expose regions for CSS. The `label`,
 `leading`, `clear`, `trailing`, and `hint` slots are independent of the parts
 with matching names. Unslotted children appear after the field and before the hint.
+
+On `type="number"`, the `scrub` and `steppers` attributes add drag scrubbing and
+step buttons. See [InputNumber](/input-number/#web-component) for their
+behavior and parts.
 
 Group trailing buttons in `<a-input-trailing slot="trailing">` to use compact
 action spacing. Mixed content keeps the text inset. The grouping tag needs no
