@@ -132,7 +132,7 @@ const renderers = {
   SystemColorTable: () => table(['System colors', 'Use'], SYSTEM_COLORS.map(row => [row.colors.map(code).join(', '), row.use])),
   IconDemo: iconCatalog,
   StickerDemo: stickerCatalog,
-  ThemingLab: themingLab,
+  ThemeConfigurator: themingLab,
   HtmlSpecimen: htmlSpecimen,
   AccessibilityMatrix: () => `The interactive matrix compares all five text levels with all five background levels for each tone in light and dark mode. It resolves the active CSS palette in the browser, composites transparent text over its background, and reports WCAG 2 contrast and APCA Lc.
 

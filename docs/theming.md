@@ -225,18 +225,16 @@ separately for light and dark modes.
 Anta's styles use ordered child layers inside `@layer anta`. Your regular
 unlayered CSS overrides them without `!important`.
 
-<a id="themes"></a>
+<a id="theme-configurator"></a>
 
-## Themes
+## Theme configurator
 
-Compare the same components across themes. Select a tab to preview the theme and
-read its stylesheet.
-
-<a id="theming-lab"></a>
-
-## Theming lab
-
-The lab below shows the derivation live. For each toned component, the shipped Default sits next to a Custom preview driven by the seed picker, with the formula constants editable and the resolved CSS shown.
+Start from Default, Antune, or Antithesis, then set a brand color and a few
+dials; four app screens update as you go. From Default, "Fine-tune per
+component" adjusts each component, and the shared surfaces and text, down to
+their CSS. View CSS gives you a theme file to load after Anta's styles. A theme
+built on Antune or Antithesis is the complete theme file, so load it instead of
+the shipped one.
 
 
 ## Theming lab reference

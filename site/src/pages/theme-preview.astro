@@ -1,6 +1,6 @@
 ---
 import antaStylesheet from '@antadesign/anta/bundle.css?url'
-import ThemeCanvas from '../components/ThemeCanvas'
+import ThemeScreens from '../components/theme-configurator/ThemeScreens'
 ---
 <!doctype html>
 <html lang="en">
@@ -10,8 +10,8 @@ import ThemeCanvas from '../components/ThemeCanvas'
     <meta name="robots" content="noindex" />
     <title>Theme preview</title>
     <link rel="stylesheet" href={antaStylesheet} />
-    <link id="preview-theme" rel="stylesheet" href="/themes/antune.css" />
-    <link id="preview-fonts" rel="stylesheet" href="/themes/fonts-antune.css" />
+    <link id="preview-theme" rel="stylesheet" href="/themes/default.css" />
+    <link id="preview-fonts" rel="stylesheet" href="/themes/default.css" />
     <script is:inline>
       if (window.parent !== window) {
         try { document.documentElement.classList.toggle('dark', parent.document.documentElement.classList.contains('dark')) } catch {}
@@ -19,31 +19,14 @@ import ThemeCanvas from '../components/ThemeCanvas'
     </script>
   </head>
   <body>
-    <ThemeCanvas client:load />
+    <ThemeScreens client:load />
   </body>
 </html>
 <style>
-  html, body { margin: 0; background: var(--bg-1); }
-  html { color-scheme: light; }
+  html, body { margin: 0; background: var(--bg-2); }
+  html { color-scheme: light; overflow: hidden; }
   html.dark { color-scheme: dark; }
 </style>
 <script>
   import '@antadesign/anta/elements'
-  const themes: Record<string, string> = {
-    none: '/themes/default.css',
-    antune: '/themes/antune.css',
-    antithesis: '/themes/antithesis.css',
-  }
-  window.addEventListener('message', event => {
-    if (event.source !== parent || event.origin !== location.origin || event.data?.type !== 'anta-theme-preview') return
-    const href = themes[event.data.theme]
-    if (!href) return
-    const link = document.querySelector<HTMLLinkElement>('#preview-theme')!
-    if (link.getAttribute('href') !== href) link.href = href
-    const fonts = document.querySelector<HTMLLinkElement>('#preview-fonts')!
-    const fontsHref = event.data.theme === 'none' ? themes.none : `/themes/fonts-${event.data.theme}.css`
-    if (fonts.getAttribute('href') !== fontsHref) fonts.href = fontsHref
-    document.documentElement.classList.toggle('dark', event.data.dark === true)
-  })
-  parent.postMessage({ type: 'anta-theme-preview-ready' }, location.origin)
 </script>

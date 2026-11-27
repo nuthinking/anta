@@ -1,0 +1,32 @@
+---
+import antaStylesheet from '@antadesign/anta/bundle.css?url'
+import ThemingLab from '../../components/ThemingLab'
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Theming lab · Anta</title>
+    <link rel="stylesheet" href={antaStylesheet} />
+    <script is:inline>
+      document.documentElement.classList.toggle('dark', matchMedia('(prefers-color-scheme: dark)').matches)
+    </script>
+  </head>
+  <body>
+    <nav><a href="/internal/">Internal tools</a></nav>
+    <main>
+      <ThemingLab client:only="preact" />
+    </main>
+  </body>
+</html>
+<style>
+  html, body { margin: 0; background: var(--bg-1); color: var(--text-1); font-family: var(--sans-serif); }
+  nav { max-inline-size: 1280px; margin-inline: auto; padding: 16px 24px 0; font-size: var(--font-size-small); }
+  nav a { color: var(--text-3); }
+  main { max-inline-size: 1280px; margin-inline: auto; padding: 16px 24px 48px; }
+</style>
+<script>
+  import '@antadesign/anta/elements'
+</script>
