@@ -75,6 +75,7 @@ jobs:
             echo 'expander=true' >> "$GITHUB_OUTPUT"
             echo 'banner=true' >> "$GITHUB_OUTPUT"
             echo 'input-time=true' >> "$GITHUB_OUTPUT"
+            echo 'input-number=true' >> "$GITHUB_OUTPUT"
             echo 'input=true' >> "$GITHUB_OUTPUT"
             echo 'toaster=true' >> "$GITHUB_OUTPUT"
             echo 'tooltip=true' >> "$GITHUB_OUTPUT"
@@ -388,6 +389,18 @@ jobs:
             echo 'input-time=true' >> "$GITHUB_OUTPUT"
           else
             echo 'input-time=false' >> "$GITHUB_OUTPUT"
+          fi
+          changed=$(git diff --name-only "$TEST_BASE_SHA"...HEAD -- \
+            'src/elements/a-input.*' src/elements/{input-focus-modality,input-trailing-actions,shadow-aria,index}.ts \
+            src/components/{InputNumber,Input,Button,Icon}.tsx \
+            src/{jsx-runtime,native-event-props,input-events,anta_helpers,element-base,general_types,index,bundle}.ts \
+            src/{tokens,reset}.css \
+            'tests/input-number*' 'tests/component*.mjs' scripts/build-bundle.mjs .github/workflows/{ci,component-tests}.yml \
+            package.json pnpm-lock.yaml pnpm-workspace.yaml {site,plot}/package.json)
+          if [ -n "$changed" ]; then
+            echo 'input-number=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'input-number=false' >> "$GITHUB_OUTPUT"
           fi
           changed=$(git diff --name-only "$TEST_BASE_SHA"...HEAD -- \
             'src/elements/a-toast*' 'src/elements/a-banner.*' 'src/elements/a-card.*' \

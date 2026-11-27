@@ -5,6 +5,11 @@ changes are not listed.
 
 ## Unreleased
 
+### Added
+
+- [InputNumber](/input-number/) is a number field built on the native number input. Drag across it to scrub the value, press its step buttons, or type. `value` and `onValueChange` use numbers, with `null` for an empty field.
+- [Input](/input-number/#web-component) accepts `scrub` and `steppers` attributes on `<a-input type="number">`, with `steppers`, `step`, `step-up`, and `step-down` parts.
+
 ### Changed
 
 - [Color seeds](/theming/#color-seeds) pass their lightness and chroma to colored tones within limits. Button, Checkbox, Radio, Switch, and Tag fills take the seed's lightness, and their label or mark turns dark on a light fill. Toned text, backgrounds, and borders take the seed's chroma. Default tones change as a result:

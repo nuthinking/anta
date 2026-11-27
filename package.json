@@ -108,6 +108,7 @@
     "test:fuzz_component": "node tests/pbt/run.ts",
     "test:consumers": "node tests/consumers/run.mjs",
     "test:input": "node --test tests/input-csp.mjs",
+    "test:input-number": "node --test tests/input-number.mjs",
     "test:input:package": "node tests/input-package.mjs",
     "test:tooltip": "node --test tests/tooltip-csp.mjs",
     "test:tooltip:package": "node tests/tooltip-package.mjs",

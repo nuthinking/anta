@@ -767,6 +767,12 @@ export interface AInputAttributes extends BaseAttributes {
   readonly?: boolean | ''
   /** Render a native button inside the field surface. Presence-based. */
   button?: boolean | ''
+  /** On `type="number"`, a horizontal drag on the unfocused field changes the
+   *  value by `step`. Presence-based. */
+  scrub?: boolean | ''
+  /** On `type="number"`, show step buttons at the end of the field.
+   *  Presence-based. */
+  steppers?: boolean | ''
   /** Required — drives native validity. In button mode, null, an empty string,
    * or an empty submitted array is missing. Presence-based. */
   required?: boolean | ''

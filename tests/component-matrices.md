@@ -20,6 +20,7 @@ when editing package source.
 | Expander | `pnpm test:expander` | `pnpm test:expander:package` |
 | Input | `pnpm test:input` | `pnpm test:input:package` |
 | InputAutocomplete | `pnpm test:input-autocomplete` | `pnpm test:input-autocomplete:package` |
+| InputNumber | `pnpm test:input-number` | — |
 | InputTime | `pnpm test:input-time` | `pnpm test:input-time:package` |
 | Menu | `pnpm test:menu` | `pnpm test:menu:package` |
 | Panel | `pnpm test:panel` | `pnpm test:panel:package` |

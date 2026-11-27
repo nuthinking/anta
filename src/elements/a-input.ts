@@ -35,6 +35,8 @@ import './a-input.css'
  *     <input|textarea|button part="input">                  ← created in JS per field mode
  *       <span part="input-label">                           ← button-mode value or placeholder
  *     <slot name="trailing" part="trailing">
+ *     <div part="steppers">                                 ← `steppers` on a number field
+ *       <button part="step step-up"> <button part="step step-down">
  *   <slot class="hint" part="hint" name="hint">           ← message; the JSX wrapper may slot a status <Icon> here too when [status]
  *
  * ## Value — controlled vs uncontrolled (mirrors a native input)
@@ -44,6 +46,12 @@ import './a-input.css'
  * - **Controlled**: set the `value` attribute and keep it in sync. The element
  *   reflects it to the shadow control *only when it differs* from what's there,
  *   so the caret never jumps mid-edit.
+ *
+ * ## Number fields
+ *
+ * On `type="number"`, `scrub` lets a horizontal drag on the unfocused field
+ * change the value, and `steppers` adds step buttons at the end of the field.
+ * Both edit the native control and report `input`, then `change`, as typing does.
  *
  * ## Events
  *
@@ -82,6 +90,15 @@ const IS_WEBKIT = /AppleWebKit\//.test(USER_AGENT) && !/Chrom(?:e|ium)\//.test(U
 const USE_NATIVE_FIELD_SIZING =
   !IS_WEBKIT && typeof CSS !== 'undefined' && !!CSS.supports?.('field-sizing', 'content')
 
+// Pointer travel before a press becomes a scrub, and per step once it has.
+const SCRUB_THRESHOLD = 3
+const SCRUB_STEP_PX = 2
+// Delay before a held stepper repeats, then the repeat interval.
+const STEP_HOLD_DELAY = 400
+const STEP_HOLD_INTERVAL = 60
+
+const decimals = (value: string | null) => value?.split('.')[1]?.length ?? 0
+
 type Control = HTMLInputElement | HTMLTextAreaElement | HTMLButtonElement
 const isInput = (control: Control | undefined): control is HTMLInputElement => control?.localName === 'input'
 const isTextarea = (control: Control | undefined): control is HTMLTextAreaElement => control?.localName === 'textarea'
@@ -94,7 +111,7 @@ export class AInputElement extends HTMLElementBase {
   static observedAttributes = [
     ...FORWARDED, ...SHADOW_ARIA_ATTRIBUTES,
     'value', 'defaultvalue', 'multiline', 'button', 'rows', 'maxrows', 'status', 'disabled',
-    'form-value',
+    'form-value', 'scrub', 'steppers',
   ]
 
   private internals?: ElementInternals
@@ -132,6 +149,13 @@ export class AInputElement extends HTMLElementBase {
   private popupActiveDescendant: Element | null = null
   #labelObserver?: MutationObserver
   #labelHasText = false
+  #steppers?: HTMLDivElement
+  #scrubEnabled = false
+  // A press on the unfocused number field. It becomes a scrub once the pointer
+  // travels past the threshold; `x` is the position already turned into steps.
+  #scrub?: { id: number; x: number; value: number; active: boolean; changed: boolean }
+  #stepTimer?: number
+  #stepChanged = false
 
   constructor() {
     super()
@@ -258,6 +282,8 @@ export class AInputElement extends HTMLElementBase {
     this.#trailingActions.disconnect()
     this.#releaseModality?.()
     this.#releaseModality = undefined
+    this.#endScrub()
+    this.#endStepHold()
     this.onBlur()
   }
 
@@ -309,6 +335,7 @@ export class AInputElement extends HTMLElementBase {
       else if (isTextarea(this.control)) this.configureTextarea(this.control)
       return
     }
+    if (name === 'scrub' || name === 'steppers') { this.#syncNumberAffordances(); return }
     if (name === 'status') { this.syncStatus(); this.updateValidity(); return }
     if (name === 'disabled') { this.syncDisabled(); return }
     // Controlled value: apply only when the attribute is PRESENT. Removing it
@@ -323,6 +350,7 @@ export class AInputElement extends HTMLElementBase {
       this.forward(name, value)
       if (name === 'name') this.syncFormValue(this.value)
       if (name === 'readonly' || name === 'type') this.syncButtonFocus()
+      if (name === 'type') this.#syncNumberAffordances()
       this.syncButtonPresentation()
       this.updateValidity()
     }
@@ -451,6 +479,14 @@ export class AInputElement extends HTMLElementBase {
     next.addEventListener('change', this.onChange)
     next.addEventListener('focus', this.onFocus)
     next.addEventListener('blur', this.onBlur)
+    next.addEventListener('pointerdown', this.#onScrubDown as EventListener)
+    next.addEventListener('mousedown', this.#onScrubMouseDown as EventListener)
+    next.addEventListener('pointermove', this.#onScrubMove as EventListener)
+    next.addEventListener('pointerup', this.#onScrubUp as EventListener)
+    next.addEventListener('pointercancel', this.#endScrub)
+    next.addEventListener('lostpointercapture', this.#endScrub)
+    this.#endScrub()
+    this.#syncNumberAffordances()
 
     if (refocus) {
       next.focus()
@@ -526,6 +562,158 @@ export class AInputElement extends HTMLElementBase {
     // union means re-enabling the fieldset doesn't enable a field that's also
     // disabled by its own attribute.
     if (this.control) this.control.disabled = this.hasAttribute('disabled') || this.formDisabled
+  }
+
+  /** The native number control, while it accepts edits. */
+  #numberControl(): HTMLInputElement | undefined {
+    const c = this.control
+    return isInput(c) && c.type === 'number' && !c.disabled && !c.readOnly ? c : undefined
+  }
+
+  #syncNumberAffordances() {
+    const number = isInput(this.control) && this.getAttribute('type') === 'number'
+    this.#scrubEnabled = number && this.hasAttribute('scrub')
+    try { this.internals?.states?.[this.#scrubEnabled ? 'add' : 'delete']('scrub') } catch { /* CustomStateSet unsupported */ }
+    if (!this.#scrubEnabled) this.#endScrub()
+    const steppers = number && this.hasAttribute('steppers')
+    if (!steppers) {
+      this.#endStepHold()
+      this.#steppers?.remove()
+      this.#steppers = undefined
+    } else if (!this.#steppers) {
+      const box = this.#steppers = this.doc.createElement('div')
+      box.setAttribute('part', 'steppers')
+      // Arrow keys already step the focused field, so the buttons stay out of
+      // the tab order and the accessibility tree.
+      box.setAttribute('aria-hidden', 'true')
+      for (const direction of [1, -1]) {
+        const button = this.doc.createElement('button')
+        button.type = 'button'
+        button.tabIndex = -1
+        button.setAttribute('part', direction > 0 ? 'step step-up' : 'step step-down')
+        // Keep focus and the caret where they are.
+        button.addEventListener('mousedown', event => event.preventDefault())
+        button.addEventListener('pointerdown', event => this.#onStepDown(event, direction))
+        button.addEventListener('pointerup', this.#endStepHold)
+        button.addEventListener('pointerleave', this.#endStepHold)
+        button.addEventListener('pointercancel', this.#endStepHold)
+        box.append(button)
+      }
+      this.#trailingSlot.after(box)
+    }
+  }
+
+  /** Apply a number to the native control and report it as an edit. */
+  #commitNumber(control: HTMLInputElement, value: number) {
+    const text = String(value)
+    if (control.value === text) return false
+    control.value = text
+    // Composed, like a native edit, so `onInput` runs and the host reports it.
+    control.dispatchEvent(new Event('input', { bubbles: true, composed: true }))
+    return true
+  }
+
+  #onScrubDown = (event: PointerEvent) => {
+    this.#endScrub()
+    const c = this.#numberControl()
+    // Touch keeps its scroll and tap behavior. A focused field keeps native
+    // caret placement and text selection.
+    if (!c || !this.#scrubEnabled || event.button !== 0 || event.pointerType === 'touch') return
+    if (this.shadowRoot?.activeElement === c) return
+    const value = c.valueAsNumber
+    this.#scrub = {
+      id: event.pointerId,
+      x: event.clientX,
+      value: Number.isFinite(value) ? value : Number(c.min) || 0,
+      active: false,
+      changed: false,
+    }
+  }
+
+  // Focus waits for release, so a drag does not select text or open an editor.
+  #onScrubMouseDown = (event: MouseEvent) => {
+    if (this.#scrub) event.preventDefault()
+  }
+
+  #onScrubMove = (event: PointerEvent) => {
+    const scrub = this.#scrub
+    const c = this.#numberControl()
+    if (!scrub || event.pointerId !== scrub.id) return
+    if (!c) { this.#endScrub(); return }
+    if (!scrub.active) {
+      if (Math.abs(event.clientX - scrub.x) < SCRUB_THRESHOLD) return
+      scrub.active = true
+      scrub.x = event.clientX
+      try { c.setPointerCapture(event.pointerId) } catch { /* pointer already released */ }
+      try { this.internals?.states?.add('scrubbing') } catch { /* CustomStateSet unsupported */ }
+      return
+    }
+    const steps = Math.trunc((event.clientX - scrub.x) / SCRUB_STEP_PX)
+    if (!steps) return
+    scrub.x += steps * SCRUB_STEP_PX
+    const step = Number(c.step) > 0 ? Number(c.step) : 1
+    // Shift takes ten steps at a time; Alt takes a tenth of one.
+    const scale = event.shiftKey ? 10 : event.altKey ? 0.1 : 1
+    let next = scrub.value + steps * step * scale
+    if (c.min !== '' && Number.isFinite(Number(c.min))) next = Math.max(Number(c.min), next)
+    if (c.max !== '' && Number.isFinite(Number(c.max))) next = Math.min(Number(c.max), next)
+    // Round away binary float error at the precision the step implies.
+    const places = Math.min(10, Math.max(decimals(c.step), decimals(c.min)) + (event.altKey && !event.shiftKey ? 1 : 0))
+    next = Number(next.toFixed(places))
+    scrub.value = next
+    if (this.#commitNumber(c, next)) scrub.changed = true
+  }
+
+  #onScrubUp = (event: PointerEvent) => {
+    const scrub = this.#scrub
+    if (!scrub || event.pointerId !== scrub.id) return
+    const c = this.#numberControl()
+    const pressed = !scrub.active
+    this.#endScrub()
+    // A press without travel is a click: edit the whole value.
+    if (pressed && c) { c.focus(); c.select() }
+  }
+
+  #endScrub = () => {
+    const scrub = this.#scrub
+    if (!scrub) return
+    this.#scrub = undefined
+    try { this.internals?.states?.delete('scrubbing') } catch { /* CustomStateSet unsupported */ }
+    const c = this.control
+    if (scrub.active && c?.hasPointerCapture?.(scrub.id)) c.releasePointerCapture(scrub.id)
+    if (scrub.changed) c?.dispatchEvent(new Event('change', { bubbles: true }))
+  }
+
+  #step(direction: number, count: number) {
+    const c = this.#numberControl()
+    if (!c) return
+    const before = c.value
+    try {
+      if (direction > 0) c.stepUp(count)
+      else c.stepDown(count)
+    } catch { /* step="any" has no step to take */ }
+    if (c.value === before) return
+    this.#stepChanged = true
+    c.dispatchEvent(new Event('input', { bubbles: true, composed: true }))
+  }
+
+  #onStepDown(event: PointerEvent, direction: number) {
+    if (event.button !== 0) return
+    this.#endStepHold()
+    const count = event.shiftKey ? 10 : 1
+    this.#step(direction, count)
+    this.#stepTimer = this.view.setTimeout(() => {
+      this.#stepTimer = this.view.setInterval(() => this.#step(direction, count), STEP_HOLD_INTERVAL)
+    }, STEP_HOLD_DELAY)
+  }
+
+  #endStepHold = () => {
+    // One id space covers timeouts and intervals.
+    if (this.#stepTimer !== undefined) this.view.clearTimeout(this.#stepTimer)
+    this.#stepTimer = undefined
+    if (!this.#stepChanged) return
+    this.#stepChanged = false
+    this.control?.dispatchEvent(new Event('change', { bubbles: true }))
   }
 
   private syncButtonPresentation() {
@@ -698,12 +886,22 @@ export class AInputElement extends HTMLElementBase {
   set value(v: string | undefined) {
     if (v === undefined) return
     this.pendingValue = v
-    if (this.control && this.control.value !== v) this.control.value = v
+    if (this.control && this.control.value !== v && !this.#keepsNumberDraft(v)) this.control.value = v
     this.syncButtonPresentation()
     this.syncFormValue(v)
     this.updateValidity()
     this.updateFilled()
     this.syncAutoHeight()
+  }
+
+  /** A focused number field can hold text the incoming value does not spell
+   *  the same way: `1.` or `1.50` for 1.5, or a lone `-` for an empty value.
+   *  Rewriting it would undo the keystroke, so the draft stays while it means
+   *  the same number. */
+  #keepsNumberDraft(v: string): boolean {
+    const c = this.control
+    if (!isInput(c) || c.type !== 'number' || this.shadowRoot?.activeElement !== c) return false
+    return v === '' ? c.validity.badInput : Number(v) === c.valueAsNumber
   }
 
   /** Submitted value override. Undefined restores submission of the live text. */

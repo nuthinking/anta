@@ -1,0 +1,196 @@
+---
+title: Number input
+nav:
+  label: "InputNumber"
+  icon: hash
+  group: inputs
+  order: 35
+---
+import Playground from '../../../components/PlaygroundEmbed.astro'
+import Preview from '../../../components/Preview.astro'
+import PropsTable from '../../../components/PropsTable.astro'
+import Disclosure from '../../../components/Disclosure.astro'
+import numberInputDemoCode from './input-number.demo.ts'
+import { InputNumber } from '@antadesign/anta'
+
+# Number input
+
+Use InputNumber for a quantity someone adjusts as often as they type it, such as
+an opacity, a size, or a count. Drag across the field to scrub the value, press
+the step buttons, use the arrow keys, or type a number.
+
+The value is a number, or `null` while the field is empty. Use `defaultValue`
+for an initial number, or pair `value` with `onValueChange` to control it. Add
+`name` to submit the value with a form.
+
+<Disclosure title="Playground" anchor={false} brand>
+
+<Playground
+  component="InputNumber"
+  layout="side"
+  panelHeight={360}
+  initialCode={numberInputDemoCode}
+  initialCss={`html, body { height: 100%; }
+.preview { min-height: 100%; align-items: center; justify-content: center; }`}
+/>
+
+</Disclosure>
+
+## Change the value
+
+InputNumber builds on the native number input, so typing, validation, and form
+submission behave as they do there. It adds two ways to change the value without
+typing.
+
+- **Scrub.** Press on the field and drag left or right. The value changes by one
+  `step` for every 2 pixels. Hold <kbd>Shift</kbd> for ten steps at a time, or
+  <kbd>Alt</kbd> for a tenth of a step.
+- **Step.** Press a step button, or press <kbd>↑</kbd> or <kbd>↓</kbd> in the
+  focused field. Hold a button to repeat. Hold <kbd>Shift</kbd> while pressing a
+  button for ten steps.
+
+A click without a drag focuses the field and selects the number, ready for
+typing. A focused field edits text, so dragging there selects digits. Press
+<kbd>Tab</kbd> or click elsewhere to scrub again. Touch input does not scrub, so
+a touch can still scroll the page.
+
+<Preview background="var(--bg-2)" gap="16px" style="flex-direction: column; align-items: flex-start;">
+  <InputNumber label="Quantity" defaultValue={12} />
+  <InputNumber label="Opacity" defaultValue={0.5} min={0} max={1} step={0.01} />
+</Preview>
+
+```tsx folded
+<InputNumber label="Quantity" defaultValue={12} />
+<InputNumber label="Opacity" defaultValue={0.5} min={0} max={1} step={0.01} />
+```
+
+## Limits and step
+
+`min` and `max` stop scrubbing and stepping at the bounds. `step` sets the
+increment and the number of decimals a scrub produces: a step of `0.01` gives
+`0.53`, never `0.53000001`.
+
+A typed value is not corrected. A number outside the bounds or off the step
+stays in the field and fails validation, so `onValueChange` reports
+`valid: false` and a form does not submit it.
+
+## Turn off scrubbing or the buttons
+
+Pass `scrub={false}` to keep text selection by dragging on an unfocused field.
+Pass `steppers={false}` to hide the step buttons. The arrow keys still step the
+value.
+
+<Preview background="var(--bg-2)" gap="16px" style="flex-direction: column; align-items: flex-start;">
+  <InputNumber label="No step buttons" defaultValue={4} steppers={false} />
+  <InputNumber label="No scrubbing" defaultValue={4} scrub={false} />
+</Preview>
+
+```tsx folded
+<InputNumber label="No step buttons" defaultValue={4} steppers={false} />
+<InputNumber label="No scrubbing" defaultValue={4} scrub={false} />
+```
+
+## Size, status, and state
+
+`size`, `status`, `hint`, `priority`, `round`, `leading`, `trailing`,
+`disabled`, and `readOnly` match [Input](/input/). A disabled or read-only field
+does not scrub or step.
+
+<Preview background="var(--bg-2)" gap="16px" style="flex-direction: column; align-items: flex-start;">
+  <InputNumber label="Small" size="small" defaultValue={8} />
+  <InputNumber label="Seats" status="critical" hint="Choose at least 1 seat." defaultValue={0} min={1} />
+  <InputNumber label="Large" size="large" defaultValue={255} max={255} />
+  <InputNumber label="Disabled" defaultValue={4} disabled />
+</Preview>
+
+```tsx folded
+<InputNumber label="Small" size="small" defaultValue={8} />
+<InputNumber label="Seats" status="critical" hint="Choose at least 1 seat." defaultValue={0} min={1} />
+<InputNumber label="Large" size="large" defaultValue={255} max={255} />
+<InputNumber label="Disabled" defaultValue={4} disabled />
+```
+
+## Controlled values
+
+Update `value` from `onValueChange` to control the number. The callback runs on
+every scrub step, button step, and keystroke with `event.type` of `input`, and
+once more with `change` when a scrub ends, a button is released, or an edit is
+committed. Save on `change` when each write is expensive.
+
+`value` is `null` while the field is empty or holds text that is not a number
+yet, such as a lone minus sign or `2.` in some browsers. The field keeps that
+text while it is focused, so the next keystroke completes it.
+
+```tsx
+const [opacity, setOpacity] = useState<number | null>(50)
+
+<InputNumber
+  label="Opacity"
+  min={0}
+  max={100}
+  value={opacity}
+  onValueChange={(event, { value }) => {
+    setOpacity(value)
+    if (event.type === 'change') save(value)
+  }}
+/>
+```
+
+<Disclosure title="InputNumber props" open>
+
+<PropsTable component="InputNumber" />
+
+</Disclosure>
+
+<Disclosure title="Web Component">
+
+Outside JSX, use `<a-input type="number">` with the `scrub` and `steppers`
+attributes. Each works alone. Slots, parts, and form behavior are those of
+[Input](/input/#web-component).
+
+Scrubbing and stepping edit the native control, so they fire `input` on each
+change and `change` when the gesture ends, as typing does. Read the number from
+the host's `value`, which is a string.
+
+For styles and renderer setup, follow [Install and configure](/install/).
+
+<Preview>
+  <a-input type="number" scrub steppers name="quantity" defaultvalue="12" min="0">
+    <span slot="label">Quantity</span>
+  </a-input>
+</Preview>
+
+```html folded
+<a-input type="number" scrub steppers name="quantity" defaultvalue="12" min="0">
+  <span slot="label">Quantity</span>
+</a-input>
+```
+
+</Disclosure>
+
+## Styling
+
+<Disclosure title="Styling" anchor={false}>
+
+InputNumber renders an `<a-input>`, so [Input's styling](/input/#styling)
+applies, including `status`, `tone`, and the `field` and `input` parts. The step
+buttons add the `steppers` part for the pair and `step`, `step-up`, and
+`step-down` for the buttons. The host matches `:state(scrub)` while scrubbing is
+available and `:state(scrubbing)` during a drag. Unlayered consumer rules
+override Anta's defaults.
+
+<Preview background="var(--bg-2)">
+  <InputNumber className="wide-steps" label="Wider buttons" defaultValue={12} />
+  <style is:inline>{`
+    .wide-steps::part(steppers) { inline-size: 24px; border-inline-start: 1px solid var(--border-3); }
+    .wide-steps:state(scrubbing)::part(input) { color: var(--text-2-brand); }
+  `}</style>
+</Preview>
+
+```css folded
+/* The class is only for the demo. Use your own selector. */
+.wide-steps::part(steppers) { inline-size: 24px; border-inline-start: 1px solid var(--border-3); }
+.wide-steps:state(scrubbing)::part(input) { color: var(--text-2-brand); }
+```
+
+</Disclosure>
