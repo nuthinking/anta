@@ -35,7 +35,7 @@ export type Edits = Partial<Record<Mode, Record<string, string>>>
 
 /** System font stacks only: themes must not load hosted fonts. */
 export const FONTS = [
-  { id: 'default', label: 'Anta default', stack: '' },
+  { id: 'default', label: 'Default', stack: '' },
   { id: 'system', label: 'System UI', stack: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif' },
   { id: 'neo-grotesque', label: 'Neo-grotesque', stack: 'Inter, Roboto, "Helvetica Neue", "Arial Nova", "Nimbus Sans", Arial, sans-serif' },
   { id: 'humanist', label: 'Humanist', stack: 'Seravek, "Gill Sans Nova", Ubuntu, Calibri, "DejaVu Sans", source-sans-pro, sans-serif' },

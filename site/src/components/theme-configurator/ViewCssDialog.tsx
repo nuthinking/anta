@@ -26,12 +26,14 @@ function download(css: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
-export default function ViewCssDialog({ open, onOpenChange, css, base, custom }: {
+export default function ViewCssDialog({ open, onOpenChange, css, base, custom, previewFont }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   css: string
   base: Base
   custom: boolean
+  /** The preview shows the docs site's typeface for this theme, which the file does not include. */
+  previewFont: boolean
 }) {
   const shipped = base !== 'default'
   const lines = css ? css.trimEnd().split('\n').length : 0
@@ -59,6 +61,11 @@ export default function ViewCssDialog({ open, onOpenChange, css, base, custom }:
       <div className={styles.dialogBody}>
         <Text size="small" priority="tertiary">{summary}</Text>
         <CodeEditor readOnly value={file} label="Theme CSS" maxHeight="50vh" />
+        {previewFont && (
+          <Text size="small" priority="tertiary">
+            The preview's typeface is not part of this file. <a href="#fonts-in-a-theme">Load your own fonts</a> or pick one under Font.
+          </Text>
+        )}
         {base === 'antithesis' && <LicenseNotice />}
       </div>
     </Dialog>

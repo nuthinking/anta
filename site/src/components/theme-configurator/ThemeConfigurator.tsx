@@ -185,7 +185,8 @@ export default function ThemeConfigurator() {
         <iframe ref={frame} src="/theme-preview/" title={`Theme preview: app screens${custom ? `, custom theme based on ${baseLabel}` : `, ${baseLabel}`}`}
           className={styles.frame} style={{ height: `${frameHeight}px`, ...(available ? { width: `${preview.width}px` } : {}) }} />
       </section>
-      <ViewCssDialog open={cssOpen} onOpenChange={setCssOpen} css={exported} base={state.base} custom={custom} />
+      <ViewCssDialog open={cssOpen} onOpenChange={setCssOpen} css={exported} base={state.base} custom={custom}
+        previewFont={state.base !== 'default' && state.type.font === 'default'} />
     </div>
     </div>
   )

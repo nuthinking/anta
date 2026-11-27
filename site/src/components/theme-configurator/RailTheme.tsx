@@ -18,6 +18,11 @@ export const BASES: { id: Base; label: string }[] = [
   { id: 'antithesis', label: 'Antithesis' },
 ]
 const STATUS = ['info', 'success', 'warning', 'critical'] as const
+/**
+ * The docs site's reference typeface for each theme. Published themes load no
+ * fonts, so the preview shows these but an exported theme does not carry them.
+ */
+const SITE_FONT: Record<Base, string> = { default: 'Default', antune: 'Antune font', antera: 'Antune font', antithesis: 'Antithesis font' }
 
 function Section({ title, children }: { title: string; children: any }) {
   return (
@@ -135,9 +140,10 @@ export default function RailTheme({ state, update, onBase, onWebsite, pickerRev 
       <Section title="Type">
         <Field label="Font" inline>
           <Select aria-label="Font" value={state.type.font}
-            options={FONTS.map((f) => ({ value: f.id, label: f.id === 'default' && shipped ? `${baseLabel} default` : f.label }))}
+            options={FONTS.map((f) => ({ value: f.id, label: f.id === 'default' && shipped ? SITE_FONT[state.base] : f.label }))}
             onValueChange={(v: FontId | null) => v && update((s) => ({ ...s, type: { ...s.type, font: v } }))} />
         </Field>
+        {shipped && state.type.font === 'default' && <p className={styles.hint}>Shown in this preview only. To use it, load the font in your app.</p>}
         <Seg label="Titles" options={['Sans', 'Serif']} value={state.type.titles === 'serif' ? 1 : 0}
           onChange={(i) => update((s) => ({ ...s, type: { ...s.type, titles: i ? 'serif' : 'sans' } }))} />
         <Seg label="Text size" options={['Small', 'Regular', 'Large']} value={state.type.size}
