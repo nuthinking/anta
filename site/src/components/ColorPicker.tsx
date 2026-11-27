@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks'
 import chroma from 'chroma-js'
-import { Menu, Tabs, TabPanel, Input, Slider, Tooltip } from '@antadesign/anta'
+import { Menu, Tabs, TabPanel, Input, InputNumber, Slider, Tooltip } from '@antadesign/anta'
 import styles from './ColorPicker.module.css'
 
 /**
@@ -61,37 +61,50 @@ function maxChroma(L: number, H: number): number {
   return lo
 }
 const safeOklch = (arr: number[], fh: number): Triple => [arr[0], arr[1], Number.isNaN(arr[2]) ? fh : arr[2]]
-const num = (v: string, fallback = 0) => {
-  const n = parseFloat(v)
-  return Number.isFinite(n) ? n : fallback
-}
 const fx = (x: number, d: number) => (Math.round(x * 10 ** d) / 10 ** d).toString()
 
-// A channel field. Its value round-trips through the color state and is reformatted
-// by fx, so it holds a raw string draft — a fractional oklch value ("0.", "0.55")
-// types cleanly. Re-seed only when the external value diverges numerically (a pad
-// pick, another channel), never mid-keystroke.
-function Chan({ label, val, onVal, tip }: { label: string; val: string; onVal: (v: string) => void; tip?: any }) {
-  const [draft, setDraft] = useState(val)
-  const [seen, setSeen] = useState(val)
-  if (seen !== val) {
-    setSeen(val)
-    if (num(draft) !== num(val)) setDraft(val)
+// A channel field: drag across it to scrub, or type a number. An emptied field
+// reports null, which is not a color, so the field stays blank until the next
+// number or until the color changes elsewhere.
+function Chan({
+  label,
+  value,
+  min,
+  max,
+  step,
+  onVal,
+  tip,
+}: {
+  label: string
+  value: number
+  min: number
+  max: number
+  step: number
+  onVal: (v: number) => void
+  tip?: any
+}) {
+  const [blank, setBlank] = useState(false)
+  const [seen, setSeen] = useState(value)
+  if (seen !== value) {
+    setSeen(value)
+    if (blank) setBlank(false)
   }
   return (
-    <div style={{ flex: '1 1 0', minWidth: 0, position: 'relative' }}>
-      <Input
-        type="text"
-        inputMode="decimal"
+    <div style={{ flex: '1 1 0', minWidth: 0 }}>
+      <InputNumber
         size="small"
         label={label}
-        value={draft}
+        min={min}
+        max={max}
+        step={step}
+        value={blank ? null : value}
         onValueChange={(_e: any, a: any) => {
-          setDraft(a.value)
-          onVal(a.value)
+          setBlank(a.value === null)
+          if (a.value !== null) onVal(a.value)
         }}
-      />
-      {tip ? <Tooltip>{tip}</Tooltip> : null}
+      >
+        {tip ? <Tooltip>{tip}</Tooltip> : null}
+      </InputNumber>
     </div>
   )
 }
@@ -322,8 +335,9 @@ export default function ColorPicker({
   }
   const pct = (v: number) => `${Math.round(v * 100)}%`
 
-  const field = (label: string, value: number, digits: number, onVal: (v: number) => void, tip?: any) => (
-    <Chan label={label} val={fx(value, digits)} onVal={(v) => onVal(num(v))} tip={tip} />
+  /** A channel field. `digits` rounds the shown value; `step` sets the scrub rate. */
+  const field = (label: string, value: number, digits: number, max: number, step: number, onVal: (v: number) => void, tip?: any) => (
+    <Chan label={label} value={Number(fx(value, digits))} min={0} max={max} step={step} onVal={onVal} tip={tip} />
   )
   /** The saturation and brightness pad HEX and RGB share. */
   const svPad = (
@@ -439,9 +453,9 @@ export default function ColorPicker({
                 {svHue}
                 {opacity}
                 <div className={styles.fields}>
-                  {field('R', rgb[0], 0, (v) => setRgb(0, v))}
-                  {field('G', rgb[1], 0, (v) => setRgb(1, v))}
-                  {field('B', rgb[2], 0, (v) => setRgb(2, v))}
+                  {field('R', rgb[0], 0, 255, 1, (v) => setRgb(0, v))}
+                  {field('G', rgb[1], 0, 255, 1, (v) => setRgb(1, v))}
+                  {field('B', rgb[2], 0, 255, 1, (v) => setRgb(2, v))}
                 </div>
               </div>
             </TabPanel>
@@ -460,9 +474,9 @@ export default function ColorPicker({
                 {hueStrip(hsl[0], `hsl(${hsl[0]} 100% 50%)`, (v) => pickHsl([v, hsl[1], hsl[2]]))}
                 {opacity}
                 <div className={styles.fields}>
-                  {field('H', hsl[0], 0, (v) => setHsl(0, v))}
-                  {field('S %', hsl[1] * 100, 0, (v) => setHsl(1, v))}
-                  {field('L %', hsl[2] * 100, 0, (v) => setHsl(2, v))}
+                  {field('H', hsl[0], 0, 360, 1, (v) => setHsl(0, v))}
+                  {field('S %', hsl[1] * 100, 0, 100, 1, (v) => setHsl(1, v))}
+                  {field('L %', hsl[2] * 100, 0, 100, 1, (v) => setHsl(2, v))}
                 </div>
               </div>
             </TabPanel>
@@ -492,14 +506,14 @@ export default function ColorPicker({
                 )}
                 {opacity}
                 <div className={styles.fields}>
-                  {/* L / C carry 5 decimals so a fine oklch value types without the
-                      draft snapping (H stays 1 — 0.1° is finer than perception). */}
-                  {field('L', l, 5, (v) => setOklch([clamp01(v), c, h]))}
-                  {field('C', c, 5, (v) => {
+                  {/* L and C show 4 decimals of the exact color. A scrub moves L by
+                      0.01 and C by 0.005 for each step. */}
+                  {field('L', l, 4, 1, 0.01, (v) => setOklch([clamp01(v), c, h]))}
+                  {field('C', c, 4, CMAX, 0.005, (v) => {
                     wantC.current = Math.max(0, Math.min(CMAX, v))
                     setOklch([l, wantC.current, h])
                   }, `in-gamut chroma limit at this L / hue: ${fx(cLimit, 3)}`)}
-                  {field('H', h, 1, (v) => setOklch([l, c, ((v % 360) + 360) % 360]))}
+                  {field('H', h, 1, 360, 1, (v) => setOklch([l, c, ((v % 360) + 360) % 360]))}
                 </div>
               </div>
             </TabPanel>
