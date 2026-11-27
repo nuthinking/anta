@@ -3,6 +3,18 @@
 This page tracks changes that ship in `@antadesign/anta`. Documentation-only
 changes are not listed.
 
+## Unreleased
+
+### Added
+
+- [InputNumber](/input-number/) is a number field built on the native number input. Drag across it to scrub the value, press its step buttons, or type. `value` and `onValueChange` use numbers, with `null` for an empty field.
+- [Input](/input-number/#web-component) accepts `scrub` and `steppers` attributes on `<a-input type="number">`, with `steppers`, `step`, `step-up`, and `step-down` parts.
+
+### Fixed
+
+
+- [Slider](/slider/) keeps committed drag values within the current bounds when they change mid-drag.
+
 ## 0.3.39 — November 22, 2026
 
 ### Added
