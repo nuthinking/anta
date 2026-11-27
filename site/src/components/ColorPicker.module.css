@@ -1,0 +1,95 @@
+/* A color over a checkerboard, so a translucent color shows its opacity. */
+.swatch {
+  display: block;
+  flex: none;
+  border: 1px solid var(--border-3);
+  background:
+    linear-gradient(var(--acp-color), var(--acp-color)),
+    repeating-conic-gradient(var(--bg-5) 0 25%, var(--bg-1) 0 50%) 0 0 / 8px 8px;
+}
+
+/* One tab: the pad, the strips, then the fields. */
+.pane {
+  display: grid;
+  gap: 10px;
+  margin-block-start: 10px;
+}
+
+.fields {
+  display: flex;
+  gap: 8px;
+}
+
+.pad {
+  position: relative;
+  block-size: 150px;
+  border-radius: 6px;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.pad:focus-visible {
+  outline: 1px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.padCanvas {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  border-radius: inherit;
+}
+
+.padThumb {
+  position: absolute;
+  inline-size: 16px;
+  block-size: 16px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px color-mix(in oklch, #000 40%, transparent);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* The blank part of the OKLCH pad: colors sRGB cannot show. */
+.gamut {
+  background: color-mix(in oklch, currentColor 6%, transparent);
+}
+
+/* Saturation runs left to right and brightness bottom to top, over the hue. */
+.sv {
+  background:
+    linear-gradient(to top, #000, transparent),
+    linear-gradient(to right, #fff, transparent),
+    var(--acp-hue);
+}
+
+/* Saturation runs left to right at 50% lightness. Black below and white above
+   then mix in to give each lightness exactly. */
+.sl {
+  background:
+    linear-gradient(to top, #000, transparent 50%, transparent 50%, #fff),
+    linear-gradient(to right, var(--acp-grey), var(--acp-hue));
+}
+
+.hue::part(fill),
+.alpha::part(fill) {
+  background: transparent;
+}
+
+.hue::part(track) {
+  background: var(--acp-rail, linear-gradient(to right in hsl longer hue, hsl(0 100% 50%), hsl(360 100% 50%)));
+}
+
+.alpha::part(track) {
+  background:
+    linear-gradient(to right, transparent, var(--acp-color)),
+    repeating-conic-gradient(var(--bg-5) 0 25%, var(--bg-1) 0 50%) 0 0 / 8px 8px;
+}
+
+.hue::part(thumb),
+.alpha::part(thumb) {
+  border: 2px solid #fff;
+  background: var(--acp-color);
+  box-shadow: 0 0 0 1px color-mix(in oklch, #000 40%, transparent);
+}
